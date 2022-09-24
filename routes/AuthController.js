@@ -10,7 +10,6 @@ const passport = require('passport');
 const flash = require('express-flash');
 const session = require('express-session');
 const methodOverride = require('method-override');
-const initializePassport = require('../passport-config');
 
 
 require('dotenv').config()
@@ -75,7 +74,6 @@ router.post('/login/inhouse', async (req, res) => {
 
     const userNameParam = req.body.userName;
     const passwordParam = req.body.password;
-    initializePassport(passport, userNameParam, passwordParam)
     try {
         const user = await User.find({ userName: userNameParam });
         if (user.length === 0){

@@ -39,9 +39,4 @@ function initializeInHouse(passport, getUserByUsername, getUserByPassword) {
     return res.json({userId: user.id})
   })
 }
-
-async function generateAccessToken(user){
-    return Token.sign(user, process.env.AUTH_ACCESS_TOKEN_SECRET, { expiresIn: '900s' })
-}
-
 module.exports = initializeInHouse;
