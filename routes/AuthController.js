@@ -5,6 +5,8 @@ const Token = require('jsonwebtoken');
 const User = require("../models/User");
 const nodemailer = require('nodemailer');
 const sendgridTransport = require('nodemailer-sendgrid-transport');
+const RefreshToken = require('../models/RefreshToken');
+const { ObjectId } = require('mongodb');
 
 require('dotenv').config()
 
@@ -37,7 +39,7 @@ router.post ('/register', async (req, res) => {
                 role: null,
             });
             await newUser.save();
-            let token = await generateAccessToken(newUser.toJSON());
+            let token = await generateAccessToken(newUser.toObject());
             let transporter =  nodemailer.createTransport(
                 sendgridTransport({
                     auth: {
@@ -64,33 +66,29 @@ router.post ('/register', async (req, res) => {
 
 });
 
-router.post('/login/inhouse', async (req, res) => {
+router.post('/login/token', async (req, res) => {
 
-    const userNameParam = req.body.userName;
-    const passwordParam = req.body.password;
+    let serverRefreshTokenParam = req.body.serverRefreshToken;
     try {
-        const user = await User.find({ userName: userNameParam });
-        if (user.length === 0){
-            return res.status(401).send({message: "invalid information" });
-        }
-        const comparedResult = await Bcrypt.compare(passwordParam, user[0].password);
-        if (comparedResult){
-            const accessToken = await generateAccessToken(user[0].toJSON());
-            const refreshToken = Token.sign(user[0].toJSON(), process.env.AUTH_REFRESH_TOKEN_SECRET);
-            const tokenObj = await RefreshToken.create({
-                serverRefreshToken: refreshToken
-            });
-            await tokenObj.save();
-            return res.json({isSetup: user[0].isProfileSetup, firstName: user[0].firstName, lastName: user[0].lastName,serverAccessToken: accessToken, serverRefreshToken: refreshToken});
+        let token = await RefreshToken.find({serverRefreshToken: serverRefreshTokenParam});
+        if (token.length === 0){
+            return res.sendStatus(401).send({message: "Invalid input - either input has syntax errors or token is not valid."});
         }
         else{
-            return res.status(401).send({message: "invalid information" });
+            Token.verify(serverRefreshTokenParam, process.env.AUTH_REFRESH_TOKEN_SECRET, (error, user) => {
+                if (error){
+                    return res.sendStatus(401).send({message: "Invalid input - either input has syntax errors or token is not valid."});
+                }
+                else{
+                    let accessToken = generateAccessToken(user);
+                    return res.json({serverAccessToken: accessToken});
+                }
+            });
         }
 
     } catch (error) {
-        return res.status(401).send({message: "invalid information" });
+        return res.sendStatus(401).send({message: "Invalid input - either input has syntax errors or token is not valid."});
     }
-
 });
 
 router.post('/register', (req, res) => {
@@ -107,7 +105,7 @@ router.post('/register', (req, res) => {
 
 });
 
-async function generateAccessToken(user){
+function generateAccessToken(user){
     return Token.sign(user, process.env.AUTH_ACCESS_TOKEN_SECRET, { expiresIn: '900s' })
 }
 
