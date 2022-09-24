@@ -14,25 +14,50 @@ router.get('/tablereq/:tablereqid', async (req, res) => {
 
     let tableRequestIdParam = req.params.tablereqid;
 
-    let retrievedTableRequestObject = null;
-    let retrievedTableParticipantMappings = null;
-    
+    let retrievedTableRequestObject = null;    
     try {
 
         retrievedTableRequestObject = await TableRequest.findById(new ObjectId(tableRequestIdParam));
 
-        retrievedTableParticipantMappings = await TableRequestParticipantMapping.find({ tableReqId: retrievedTableRequestObject.id});
+        const tableReqObject = retrievedTableRequestObject.toObject();
 
-        let tableReqObject = retrievedTableRequestObject.toObject();
+        const tableReqTableConfig = await TableConfiguration.findById(retrievedTableRequestObject.tableConfigId);
 
-        tableReqObject['participants'] = retrievedTableParticipantMappings;
+        const pendingParticipantsUserObjects = [];
+        const currentParticipantsUserObjects = []
+        const organizerParticipantUserObjects = []
+        const allParticipants = await TableRequestParticipantMapping.find({tableReqId: retrievedTableRequestObject.id});
+
+        for (let i = 0; i < allParticipants.length; i++){
+            if (allParticipants[i].isInvitedPending && !allParticipants[i].isRequestOrganizer){
+                const tempPendingParticipantObject = await Participant.findById(new ObjectId(allParticipants[i].participantId));
+                const pendingParticipantUserObject = await tempPendingParticipantObject.populate('userId');
+                pendingParticipantsUserObjects.push(pendingParticipantUserObject);
+
+            }
+            if (allParticipants[i].isActiveParticipant && !allParticipants[i].isRequestOrganizer){
+                const tempCurrentParticipantObject = await Participant.findById(new ObjectId(allParticipants[i].participantId));
+                const currentParticipantObject = await tempCurrentParticipantObject.populate('userId');
+                currentParticipantsUserObjects.push(currentParticipantObject);
+            }
+            if (allParticipants[i].isRequestOrganizer){
+                const tempOrganizerParticipantObject = await Participant.findById(new ObjectId(allParticipants[i].participantId));
+                const organizerParticipantObject = await tempOrganizerParticipantObject.populate('userId');
+                organizerParticipantUserObjects.push(organizerParticipantObject);
+            }
+
+        }
+
+        tableReqObject['pendingParticipants'] = pendingParticipantsUserObjects;
+        tableReqObject['currentParticipants'] = currentParticipantsUserObjects;
+        tableReqObject['organizerUserObjects'] = organizerParticipantUserObjects;
+        tableReqObject['tableConfigDetails'] = await tableReqTableConfig.populate();
 
         res.json(tableReqObject);
         
         return;
 
     } catch (err) {
-
         res.status(400).send({message: "Invalid request - We could not retrieve that specific table request"});
         return;
 
@@ -43,37 +68,48 @@ router.get('/tablereq/:tablereqid', async (req, res) => {
 
 router.get('/club/:clubid', async (req, res) => {
 
-    const clubIdParam = req.params.clubid;
+    let clubIdParam = req.params.clubid;
 
     let retrievedTableRequestObjects = null;
     
     try {
 
         retrievedTableRequestObjects = await TableRequest.find({ clubId: new ObjectId(clubIdParam) });
-        const modifiedTableRequestList = [];
+
+        let modifiedTableRequestList = [];
 
         for (let i = 0; i < retrievedTableRequestObjects.length; i++) {
-            const retrievedTableObject = retrievedTableRequestObjects[i]; 
-            const associatedTableParticipantMapping = await TableRequestParticipantMapping.find({ tableReqId: retrievedTableObject._id, isRequestOrganizer: true });
-            const tableParticipantMappingObject = associatedTableParticipantMapping[0]; 
-            const retrievedTableObjectTableConfig = await TableConfiguration.findById(new ObjectId(retrievedTableObject.tableConfigId)); 
-            const convertedTableObject = retrievedTableObject.toObject(); 
-            const organizersParticipantId = tableParticipantMappingObject.participantId;
-            const organizerParticipantObjectTemp = await Participant.findById(new ObjectId(organizersParticipantId)).populate('userId'); 
-            const organizerName = organizerParticipantObjectTemp.userId.firstName + " " + organizerParticipantObjectTemp.userId.firstName;
-            const organizerProfilePic = organizerParticipantObjectTemp.userId.profilePhoto;
-            modifiedTableRequestList.push({
-                ...convertedTableObject,
-                organizerId: organizersParticipantId,
-                organizerName: organizerName,
-                organizerProfilePic: organizerProfilePic,
-                recommendedCapacity: retrievedTableObjectTableConfig.size
-            });
+
+            let retrievedTableObject = retrievedTableRequestObjects[i];
+
+            let associatedTableParticipantMapping = await TableRequestParticipantMapping.find({ tableReqId: new ObjectId(retrievedTableObject.id) });
+
+            for (let j = 0; j < associatedTableParticipantMapping.length; j++) {
+
+
+                let tableParticipantMappingObject = associatedTableParticipantMapping[j];
+
+
+                if (tableParticipantMappingObject.isRequestOrganizer) {
+
+                    let convertedTableObject = retrievedTableObject.toObject();
+
+                    modifiedTableRequestList.push({
+                        ...convertedTableObject,
+                        organizerId: tableParticipantMappingObject.participantId
+                    });
+
+                }
+
+            }
+
         }
+
         res.json(modifiedTableRequestList);
         return;
 
     } catch (err) {
+
         res.status(400).send({message: "Invalid request - We could not find any table requests from the specified club ID"});
         return;
 
@@ -378,4 +414,3 @@ router.get('/tablereqquery', async (req, res) => {
 })
 
 module.exports = router;
-
