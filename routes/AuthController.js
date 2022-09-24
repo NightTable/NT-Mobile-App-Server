@@ -6,6 +6,12 @@ const User = require('../models/User');
 const RefreshToken = require('../models/RefreshToken')
 const nodemailer = require('nodemailer');
 const sendgridTransport = require('nodemailer-sendgrid-transport');
+const passport = require('passport');
+const flash = require('express-flash');
+const session = require('express-session');
+const methodOverride = require('method-override');
+const initializePassport = require('../passport-config');
+
 
 require('dotenv').config()
 
@@ -69,6 +75,7 @@ router.post('/login/inhouse', async (req, res) => {
 
     const userNameParam = req.body.userName;
     const passwordParam = req.body.password;
+    initializePassport(passport, userNameParam, passwordParam)
     try {
         const user = await User.find({ userName: userNameParam });
         if (user.length === 0){
@@ -111,5 +118,20 @@ router.post('/register', (req, res) => {
 async function generateAccessToken(user){
     return Token.sign(user, process.env.AUTH_ACCESS_TOKEN_SECRET, { expiresIn: '900s' })
 }
+
+function checkAuthenticated(req, res, next) {
+    if (req.isAuthenticated()) {
+      return next()
+    }
+  
+    res.redirect('/login')
+  }
+  
+  function checkNotAuthenticated(req, res, next) {
+    if (req.isAuthenticated()) {
+      return res.redirect('/')
+    }
+    next()
+  }
 
 module.exports = router;
