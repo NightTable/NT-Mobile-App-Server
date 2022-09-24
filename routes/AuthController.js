@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const Bcrypt = require('bcrypt');
 const Token = require('jsonwebtoken');
-const User = require("../models/User");
+const Bcrypt = require('bcrypt');
+const User = require('../models/User');
+const RefreshToken = require('../models/RefreshToken')
 const nodemailer = require('nodemailer');
 const sendgridTransport = require('nodemailer-sendgrid-transport');
 
