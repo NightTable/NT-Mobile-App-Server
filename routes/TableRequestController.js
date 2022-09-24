@@ -1,3 +1,9 @@
+// All information, source code contained in this document 
+// is the property of StrynDev Solutions, LLC. It must not 
+// be transmitted to others without the written consent of 
+// StrynDev Solutions. It must be returned to StrynDev Solutions 
+// when its authorized use is terminated.
+
 const express = require('express');
 const router = express.Router();
 const ObjectId = require('mongodb').ObjectId;
@@ -43,37 +49,48 @@ router.get('/tablereq/:tablereqid', async (req, res) => {
 
 router.get('/club/:clubid', async (req, res) => {
 
-    const clubIdParam = req.params.clubid;
+    let clubIdParam = req.params.clubid;
 
     let retrievedTableRequestObjects = null;
     
     try {
 
         retrievedTableRequestObjects = await TableRequest.find({ clubId: new ObjectId(clubIdParam) });
-        const modifiedTableRequestList = [];
+
+        let modifiedTableRequestList = [];
 
         for (let i = 0; i < retrievedTableRequestObjects.length; i++) {
-            const retrievedTableObject = retrievedTableRequestObjects[i]; 
-            const associatedTableParticipantMapping = await TableRequestParticipantMapping.find({ tableReqId: retrievedTableObject._id, isRequestOrganizer: true });
-            const tableParticipantMappingObject = associatedTableParticipantMapping[0]; 
-            const retrievedTableObjectTableConfig = await TableConfiguration.findById(new ObjectId(retrievedTableObject.tableConfigId)); 
-            const convertedTableObject = retrievedTableObject.toObject(); 
-            const organizersParticipantId = tableParticipantMappingObject.participantId;
-            const organizerParticipantObjectTemp = await Participant.findById(new ObjectId(organizersParticipantId)).populate('userId'); 
-            const organizerName = organizerParticipantObjectTemp.userId.firstName + " " + organizerParticipantObjectTemp.userId.firstName;
-            const organizerProfilePic = organizerParticipantObjectTemp.userId.profilePhoto;
-            modifiedTableRequestList.push({
-                ...convertedTableObject,
-                organizerId: organizersParticipantId,
-                organizerName: organizerName,
-                organizerProfilePic: organizerProfilePic,
-                recommendedCapacity: retrievedTableObjectTableConfig.size
-            });
+
+            let retrievedTableObject = retrievedTableRequestObjects[i];
+
+            let associatedTableParticipantMapping = await TableRequestParticipantMapping.find({ tableReqId: new ObjectId(retrievedTableObject.id) });
+
+            for (let j = 0; j < associatedTableParticipantMapping.length; j++) {
+
+
+                let tableParticipantMappingObject = associatedTableParticipantMapping[j];
+
+
+                if (tableParticipantMappingObject.isRequestOrganizer) {
+
+                    let convertedTableObject = retrievedTableObject.toObject();
+
+                    modifiedTableRequestList.push({
+                        ...convertedTableObject,
+                        organizerId: tableParticipantMappingObject.participantId
+                    });
+
+                }
+
+            }
+
         }
+
         res.json(modifiedTableRequestList);
         return;
 
     } catch (err) {
+
         res.status(400).send({message: "Invalid request - We could not find any table requests from the specified club ID"});
         return;
 
@@ -100,6 +117,30 @@ router.delete('/:tablereqid/:participantId', async (req, res) => {
 
         res.status(400).send({ message: "Invalid request - We were not able to delete the table request "});
     }
+
+
+});
+
+router.get('/tablereq/:tablereqid', async (req, res) => {
+
+
+    let tableRequestIdParam = req.params.tablereqid;
+
+    let retrievedTableRequestObject = null;
+    
+    try {
+
+        retrievedTableRequestObject = await TableRequest.findById(new ObjectId(tableRequestIdParam));
+        res.json(retrievedTableRequestObject);
+        return;
+
+    } catch (err) {
+
+        res.status(400).send({message: "Invalid request - We could not retrieve that specific table request"});
+        return;
+
+    }
+
 
 
 });
@@ -378,4 +419,3 @@ router.get('/tablereqquery', async (req, res) => {
 })
 
 module.exports = router;
-

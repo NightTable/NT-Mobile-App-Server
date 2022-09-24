@@ -1,3 +1,9 @@
+// All information, source code contained in this document 
+// is the property of StrynDev Solutions, LLC. It must not 
+// be transmitted to others without the written consent of 
+// StrynDev Solutions. It must be returned to StrynDev Solutions 
+// when its authorized use is terminated.
+
 const { app } = require('../../server');
 const request = require('supertest');
 const mongoose = require('mongoose');
@@ -11,17 +17,20 @@ describe('Testing the POST /api/tableconfigurations/club/:clubId endpoint', () =
     let cid = new ObjectId();
 
     beforeAll( async() => {
-        await TableConfiguration.deleteOne({ type: "dj",
-                                    price: 10000,
-                                    size: 4,
-                                    availabilityCount: 2,
-                                    clubId: cid
-                                });
+        await TableConfiguration.deleteOne(
+            {
+                type: "dj",
+                minPrice: 10000,
+                recommendedCapacity: 4,
+                availabilityCount: 2,
+                clubId: cid
+            }
+        );
 
         validTC = await TableConfiguration.create({
             type: "dj",
-            price: 10000,
-            size: 4,
+            minPrice: 10000,
+            recommendedCapacity: 4,
             availabilityCount: 2,
             clubId: cid
         })
@@ -31,7 +40,7 @@ describe('Testing the POST /api/tableconfigurations/club/:clubId endpoint', () =
     it(`returns a 400 error with the message “Invalid Request — User input does not conform to table configuration object`, async () => {
         const truncatedTCInputObject = {
             type: "dj",
-            price: 10000,
+            minPrice: 10000,
         }
         const response = await request(app)
             .post(`/api/tableconfigurations/club/${cid}`)
@@ -46,8 +55,8 @@ describe('Testing the POST /api/tableconfigurations/club/:clubId endpoint', () =
 
         const requestTCInputObject = {
             type: "Owner",
-            price: 100000,
-            size: 4,
+            minPrice: 100000,
+            recommendedCapacity: 4,
             availabilityCount: 1,
             clubId: cid
         }
@@ -64,8 +73,8 @@ describe('Testing the POST /api/tableconfigurations/club/:clubId endpoint', () =
 
         const requestTCInputObject = {
             type: "dj",
-            price: 10000,
-            size: 4,
+            minPrice: 10000,
+            recommendedCapacity: 4,
             availabilityCount: 2,
             clubId: cid
         }
@@ -80,10 +89,10 @@ describe('Testing the POST /api/tableconfigurations/club/:clubId endpoint', () =
     });
 
     it('Should appear that the table configuration object is represented and added into the database', async () => {
-        const addedTCObject = await TableConfiguration.find({type: "dj", price: 10000, size: 4,});
+        const addedTCObject = await TableConfiguration.find({type: "dj", minPrice: 10000, recommendedCapacity: 4,});
         expect(addedTCObject[0].type).toEqual("dj");
-        expect(addedTCObject[0].price).toEqual(10000);
-        expect(addedTCObject[0].size).toEqual(4);
+        expect(addedTCObject[0].minPrice).toEqual(10000);
+        expect(addedTCObject[0].recommendedCapacity).toEqual(4);
         expect(addedTCObject[0]).toBeDefined();
 
     });
@@ -92,14 +101,13 @@ describe('Testing the POST /api/tableconfigurations/club/:clubId endpoint', () =
 
         const requestTCInputObject = {
             type: "dj",
-            price: 100000,
-            size: 4,
+            minPrice: 100000,
+            recommendedCapacity: 4,
             availabilityCount: 2,
             clubId: new ObjectId()
         }
-
         const response = await request(app)
-            .post(`/api/tableconfigurations/club/notavalidclubid`)
+            .post(`/api/tableconfigurations/club/invalidclubid`)
             .send(requestTCInputObject)
             .set('Accept', 'application/json');
 
@@ -112,7 +120,16 @@ describe('Testing the POST /api/tableconfigurations/club/:clubId endpoint', () =
 
 
     afterAll( async () => {
-        await TableConfiguration.deleteOne({ _id: validTC.id});
+        await TableConfiguration.deleteOne(
+            {
+                type: "dj",
+                minPrice: 10000,
+                recommendedCapacity: 4,
+                availabilityCount: 2,
+                clubId: cid
+            }
+        );
+        await TableConfiguration.deleteOne({type: "Owner",});        
         mongoose.connection.close();
     });
 

@@ -1,3 +1,9 @@
+// All information, source code contained in this document 
+// is the property of StrynDev Solutions, LLC. It must not 
+// be transmitted to others without the written consent of 
+// StrynDev Solutions. It must be returned to StrynDev Solutions 
+// when its authorized use is terminated.
+
 const request = require('supertest');
 const { app } = require('../../server');
 const mongoose = require('mongoose');
@@ -25,8 +31,6 @@ describe('Testing the GET /api/users/:userid endpoint', () => {
             instaHandle: "@something.com",
             phoneNumber: 3093333333,
             password: "hashedpassword",
-            role: "consumer",
-            customerId: null
         });
 
         await sampleUser.save();
@@ -55,7 +59,6 @@ describe('Testing the GET /api/users/:userid endpoint', () => {
         expect(response.body.hasOwnProperty('instaHandle')).toEqual(true);
         expect(response.body.hasOwnProperty('phoneNumber')).toEqual(true);
         expect(response.body.hasOwnProperty('password')).toEqual(true);
-        expect(response.body.hasOwnProperty('role')).toEqual(true);
 
     });
 

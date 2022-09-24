@@ -1,10 +1,17 @@
+// All information, source code contained in this document 
+// is the property of StrynDev Solutions, LLC. It must not 
+// be transmitted to others without the written consent of 
+// StrynDev Solutions. It must be returned to StrynDev Solutions 
+// when its authorized use is terminated.
+
+
 const express = require('express');
 const Region = require('../models/Region');
 const router = express.Router();
 const { getDistanceFromLatLonInMi } = require('../distanceAlgorithm');
 const Club = require('../models/Club');
 const User = require('../models/User');
-const { ObjectId } = require('mongodb');
+const {ObjectId} = require('mongodb');
 
 
 router.put('/club/:clubid', async (req, res) => {
@@ -84,7 +91,9 @@ router.post('/user/:userid', async (req, res) => {
     let phoneNumberParam = null;
     let addressParam = null;
     let websiteParam = null;
-    let regionId = null;
+    let regionIdParam = null;
+    let representativeIdParam = null;
+    let stripeAccountNumberParam = null
 
     try {
 
@@ -95,52 +104,44 @@ router.post('/user/:userid', async (req, res) => {
         phoneNumberParam = parseInt(req.body.phoneNumber);
         addressParam = req.body.address;
         websiteParam = req.body.website;
-        regionId = req.body.regionId;
+        regionIdParam = req.body.regionId;
+        representativeIdParam = req.body.representativeId;
+        stripeAccountNumberParam = req.body.stripeAccountNumber;
 
-    } catch (exception) {
+        // checkig the case if the user does not put in all the required parameters 
 
+        const allInputsPresent = (
+            name !== undefined &&
+            latitudeParam !== undefined &&
+            longitudeParam !== undefined &&
+            instaHandleParam !== undefined &&
+            phoneNumberParam !== undefined &&
+            addressParam !== undefined &&
+            websiteParam !== undefined &&
+            regionIdParam !== undefined && 
+            representativeIdParam !== undefined &&
+            stripeAccountNumberParam !== undefined
+        );
 
-        res.status(400).send({message: "Invalid request -- The club was not able to be added to the database"});
-        return;
-    }
+        if (!allInputsPresent) {
 
-    // checkig the case if the user does not put in all the required parameters 
-
-    const allInputsPresent = (
-        name !== undefined &&
-        latitudeParam !== undefined &&
-        longitudeParam !== undefined &&
-        instaHandleParam !== undefined &&
-        phoneNumberParam !== undefined &&
-        addressParam !== undefined &&
-        websiteParam !== undefined &&
-        regionId !== undefined
-    )
-
-    if (!allInputsPresent) {
-
-        res.status(400).send({message: "Invalid request -- The club was not able to be added to the database"});
-        return;
-
-    } else {
-
-
-        // there probably should be a validation check to make sure that the latitude and longitude
-        // of the club are indeed within the range constraints/location of the region but that can wait until a little later
-        // in development most likely
-
-        // this endpoint is used on the web admin panel, so maybe we wnant to do that in browser, we can decide on this later
-
-        try {
-
+            res.status(400).send({message: "Invalid request -- The club was not able to be added to the database"});
+            return;
+    
+        } else {
+    
+    
+            // there probably should be a validation check to make sure that the latitude and longitude
+            // of the club are indeed within the range constraints/location of the region but that can wait until a little later
+            // in development most likely
+    
+            // this endpoint is used on the web admin panel, so maybe we wnant to do that in browser, we can decide on this later
+    
+    
             // verifying that the user is of manager role
-
+    
             const userObject = await User.findById(new ObjectId(userId));
-
-            if (userObject.role !== 'manager') {
-                throw new Error("Incorrect role");
-            }
-
+    
             const newClubObject = await Club.create({
                 name: name,
                 latitude: latitudeParam,
@@ -149,24 +150,25 @@ router.post('/user/:userid', async (req, res) => {
                 phoneNumber: phoneNumberParam,
                 address: addressParam,
                 website: websiteParam,
-                userId: new ObjectId(userId),
-                regionId: new ObjectId(regionId)
+                regionId: new ObjectId(regionIdParam),
+                representativeId: new ObjectId(representativeIdParam),
+                stripeAccountNumber: stripeAccountNumberParam
             });
-        
+            
             await newClubObject.save();
-
+    
             res.json({
                 message: "The club was successfully added to the database"
             });
             return;
+    
 
-        } catch (exception) {
-
-            res.status(400).send({message: "Invalid request -- The club was not able to be added to the database"});
-            return;
         }
-    }
 
+    } catch (exception) {
+        res.status(400).send({message: "Invalid request -- The club was not able to be added to the database"});
+        return;
+    }
 });
 
 

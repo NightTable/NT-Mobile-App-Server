@@ -1,3 +1,10 @@
+// NightTable, LLC has been granted a license by John Nydam 
+// to use this document and the information contained in it 
+// for business objectives pertinent to the company. 
+// It must not be copied, duplicated, or used in any manner, 
+// or transmitted to others without the written consent of John Nydam. 
+// It must be returned to John Nydam when its authorized use is terminated. 
+
 const { app } = require('../../server');
 const request = require('supertest');
 const mongoose = require('mongoose');
@@ -37,8 +44,9 @@ describe('Testing the GET /api/clubs/:lat/:long', () => {
             phoneNumber: 393443333,
             address: "28 Gorska Street",
             website: "www.sampleclubname1.com",
-            userId: new ObjectId(),
-            regionId: new ObjectId(sampleRegion._id) 
+            regionId: new ObjectId(sampleRegion._id),
+            representativeId: new ObjectId(),
+            stripeAccountNumber: "1234567890asdfgh" 
         });
 
         await sampleClubOne.save();
@@ -62,8 +70,9 @@ describe('Testing the GET /api/clubs/:lat/:long', () => {
         expect(response.body[0].phoneNumber).toEqual(sampleClubOne.phoneNumber);
         expect(response.body[0].address).toEqual(sampleClubOne.address);
         expect(response.body[0].website).toEqual(sampleClubOne.website);
+        expect(response.body[0].stripeAccountNumber).toEqual(sampleClubOne.stripeAccountNumber);
         expect(JSON.stringify(response.body[0].regionId)).toEqual(JSON.stringify(sampleClubOne.regionId));
-        expect(JSON.stringify(response.body[0].userId)).toEqual(JSON.stringify(sampleClubOne.userId));
+        expect(JSON.stringify(response.body[0].representativeId)).toEqual(JSON.stringify(sampleClubOne.representativeId));
 
 
 
@@ -97,7 +106,10 @@ describe('Testing the GET /api/clubs/:lat/:long', () => {
         expect(response.body[0].hasOwnProperty('address')).toEqual(true);
         expect(response.body[0].hasOwnProperty('website')).toEqual(true);
         expect(response.body[0].hasOwnProperty('regionId')).toEqual(true);
-        expect(response.body[0].hasOwnProperty('userId')).toEqual(true);
+        expect(response.body[0].hasOwnProperty('stripeAccountNumber')).toEqual(true);
+        expect(response.body[0].hasOwnProperty('representativeId')).toEqual(true);
+
+
 
 
     });

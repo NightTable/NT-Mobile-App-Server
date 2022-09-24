@@ -1,3 +1,9 @@
+// All information, source code contained in this document 
+// is the property of StrynDev Solutions, LLC. It must not 
+// be transmitted to others without the written consent of 
+// StrynDev Solutions. It must be returned to StrynDev Solutions 
+// when its authorized use is terminated.
+
 const express = require('express');
 const router = express.Router();
 const Bcrypt = require('bcrypt');
@@ -63,33 +69,15 @@ router.post ('/register', async (req, res) => {
     }
 
 });
+router.post('/login/inhouse', (req, res) => {
 
-router.post('/login/inhouse', async (req, res) => {
+    const username = req.body.username;
+    const password = req.body.password;
 
-    const userNameParam = req.body.userName;
-    const passwordParam = req.body.password;
-    try {
-        const user = await User.find({ userName: userNameParam });
-        if (user.length === 0){
-            return res.status(401).send({message: "invalid information" });
-        }
-        const comparedResult = await Bcrypt.compare(passwordParam, user[0].password);
-        if (comparedResult){
-            const accessToken = await generateAccessToken(user[0].toJSON());
-            const refreshToken = Token.sign(user[0].toJSON(), process.env.AUTH_REFRESH_TOKEN_SECRET);
-            const tokenObj = await RefreshToken.create({
-                serverRefreshToken: refreshToken
-            });
-            await tokenObj.save();
-            return res.json({isSetup: user[0].isProfileSetup, firstName: user[0].firstName, lastName: user[0].lastName,serverAccessToken: accessToken, serverRefreshToken: refreshToken});
-        }
-        else{
-            return res.status(401).send({message: "invalid information" });
-        }
+    console.log(username);
+    console.log(password);
 
-    } catch (error) {
-        return res.status(401).send({message: "invalid information" });
-    }
+    res.status(200).send();
 
 });
 

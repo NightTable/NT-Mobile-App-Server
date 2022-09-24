@@ -1,3 +1,10 @@
+// NightTable, LLC has been granted a license by John Nydam 
+// to use this document and the information contained in it 
+// for business objectives pertinent to the company. 
+// It must not be copied, duplicated, or used in any manner, 
+// or transmitted to others without the written consent of John Nydam. 
+// It must be returned to John Nydam when its authorized use is terminated. 
+
 const { app } = require('../../server');
 const request = require('supertest');
 const mongoose = require('mongoose');
@@ -22,8 +29,9 @@ describe('Testing the GET /api/clubs/:clubid endpoint', () => {
             phoneNumber: 393443333,
             address: "28 Gorska Street",
             website: "www.sampleclubname1.com",
-            userId: new ObjectId(),
-            regionId: new ObjectId() 
+            regionId: new ObjectId(),
+            representativeId: new ObjectId(),
+            stripeAccountNumber: "1234567890zxcvbn"  
         });
 
         await sampleClubOne.save();
@@ -36,8 +44,9 @@ describe('Testing the GET /api/clubs/:clubid endpoint', () => {
             phoneNumber: 393443333,
             address: "32 Gorska Street",
             website: "www.sampleclubname2.com",
-            userId: new ObjectId(),
-            regionId: new ObjectId() 
+            regionId: new ObjectId(),
+            representativeId: new ObjectId(),
+            stripeAccountNumber: "1234567890asdfgh" 
         });
 
         await sampleClubTwo.save();
@@ -79,7 +88,6 @@ describe('Testing the GET /api/clubs/:clubid endpoint', () => {
             .get(`/api/clubs/${sampleClubOne.id}`)
             .set('Accept', 'application/json');
 
-        expect(response.body.hasOwnProperty('userId')).toEqual(true);
         expect(response.body.hasOwnProperty('name')).toEqual(true);
         expect(response.body.hasOwnProperty('latitude')).toEqual(true);
         expect(response.body.hasOwnProperty('longitude')).toEqual(true);
@@ -88,7 +96,8 @@ describe('Testing the GET /api/clubs/:clubid endpoint', () => {
         expect(response.body.hasOwnProperty('address')).toEqual(true);
         expect(response.body.hasOwnProperty('website')).toEqual(true);
         expect(response.body.hasOwnProperty('regionId')).toEqual(true);
-        expect(response.body.hasOwnProperty('userId')).toEqual(true);
+        expect(response.body.hasOwnProperty('stripeAccountNumber')).toEqual(true);
+        expect(response.body.hasOwnProperty('representativeId')).toEqual(true);
 
 
     });
