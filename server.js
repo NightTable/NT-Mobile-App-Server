@@ -4,7 +4,7 @@ const port = process.env.PORT || 3000;
 const mongoose = require('mongoose');
 const socketio = require('socket.io');
 const cors = require('cors');
-
+const bodyParser = require("body-parser")
 const { configureTestInterfaceRoutes } = require('./testinterfaceroutes/TestInterfaceUtil');
 
 const { getFileStream } = require('./s3');
@@ -29,8 +29,8 @@ let socketNameSpaces = ['tableReqNameSpace', 'messageChatNamespace'];
 require('dotenv').config();
 
 app.use(express.json());
-
 app.use(cors());
+
 
 app.use('/api/auth', authControllerRoutes);
 app.use('/api/util', utilControllerRoutes);
