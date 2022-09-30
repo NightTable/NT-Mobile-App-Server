@@ -1,4 +1,5 @@
 const express = require('express');
+const passport = require('passport')
 const router = express.Router();
 const Token = require('jsonwebtoken');
 const Bcrypt = require('bcrypt');
@@ -6,14 +7,14 @@ const User = require('../models/User');
 const RefreshToken = require('../models/RefreshToken')
 const nodemailer = require('nodemailer');
 const sendgridTransport = require('nodemailer-sendgrid-transport');
+const LocalStrategy = require('passport-local').Strategy
 
 
 
 
-//const LocalStrategy = require('passport-local').Strategy
-/*const flash = require('express-flash');
-const session = require('express-session');
-const methodOverride = require('method-override');*/
+const flash = require('express-flash')
+const session = require('express-session')
+const methodOverride = require('method-override')
 const { ObjectId } = require('mongodb');
 
 
@@ -75,45 +76,15 @@ router.post ('/register', async (req, res) => {
 
 });
 
-router.post('/login/inhouse', async (req, res) => {
+router.get('/successful/login',checkAuthenticated, async(req, res) => {
+    console.log("you successfully logged in");
+})
 
-    const userNameParam = req.body.userName;
-    const passwordParam = req.body.password;
-    const user = await User.find({ userName: userNameParam });
-    /*const authenticating = await authenticateInhouse(userNameParam, passwordParam);
-    passport.use(new LocalStrategy(), authenticating);
-    passport.serializeUser((user, done) => done(null, user.id))
-    passport.deserializeUser((id, done) => {
-        const theUser = User.findById({_id: new ObjectId(id)});
-        return done(null, theUser);
-    });*/
-
-    try {
-        if (user.length === 0){
-            return res.status(401).send({message: "invalid information" });
-        }
-        const comparedResult = await Bcrypt.compare(passwordParam, user[0].password);
-        if (comparedResult){
-            const accessToken = await generateAccessToken(user[0].toJSON());
-            const refreshToken = Token.sign(user[0].toJSON(), process.env.AUTH_REFRESH_TOKEN_SECRET);
-            const tokenObj = await RefreshToken.create({
-                serverRefreshToken: refreshToken
-            });
-            console.log(tokenObj.serverRefreshToken, "token obj");
-            await tokenObj.save();
-            return res.json({isSetup: user[0].isProfileSetup, firstName: user[0].firstName, lastName: user[0].lastName,serverAccessToken: accessToken, serverRefreshToken: refreshToken});
-        }
-        else{
-            console.log(error);
-            return res.status(401).send({message: "invalid information" });
-        }
-
-    } catch (error) {
-        console.log(error);
-        return res.status(401).send({message: "invalid information"});
-    }
-
-});
+router.post('/login/inhouse', checkNotAuthenticated,passport.authenticate('local', {
+    successRedirect: 'api/auth/successful/login',
+    failureRedirect: '/api/auth/login/inhouse',
+    failureFlash: true,
+}));
 
 router.post('/register', (req, res) => {
 
@@ -133,28 +104,12 @@ async function generateAccessToken(user){
     return Token.sign(user, process.env.AUTH_ACCESS_TOKEN_SECRET, { expiresIn: '900s' })
 }
 
-async function checkAuthenticated(req, res, next) {
-    if (req.isAuthenticated()) {
-        return next()
-    }
-  
-    res.redirect('/login')
-}
-  
-async function checkNotAuthenticated(req, res, next) {
-    if (req.isAuthenticated()) {
-        return res.redirect('/')
-    }
-    next()
-}
-
-async function authenticateInhouse(username, password){
+async function authenticateInhouse(user, passwordParam, res){
     try {
-        const user = await User.find({ userName: username });
         if (user.length === 0){
             return res.status(401).send({message: "invalid information" });
         }
-        const comparedResult = await Bcrypt.compare(password, user[0].password);
+        const comparedResult = await Bcrypt.compare(passwordParam, user[0].password);
         if (comparedResult){
             const accessToken = await generateAccessToken(user[0].toJSON());
             const refreshToken = Token.sign(user[0].toJSON(), process.env.AUTH_REFRESH_TOKEN_SECRET);
@@ -169,8 +124,27 @@ async function authenticateInhouse(username, password){
         }
 
     } catch (error) {
-        return res.status(401).send({message: "invalid information" });
+        return res.status(401).send({message: "invalid information"});
     }
+}
+
+async function checkAuthenticated(req, res, next) {
+    if (req.isAuthenticated()) {
+        return next()
+    }
+}
+
+async function checkNotAuthenticated(req, res) {
+    if (req.isAuthenticated()) {
+        return res.redirect('api/auth/successful/login') 
+    }
+    const user = await User.find({ userName: req.body.userName });
+    passport.use(new LocalStrategy({usernameField: "userName"}, authenticateInhouse(user, req.body.password, res)));
+    passport.serializeUser((user, done) => done(null, user.id))
+    passport.deserializeUser((id, done) => {
+        const theUser = User.findById({_id: new ObjectId(id)});
+        return done(null, theUser);
+    });
 }
 
 
