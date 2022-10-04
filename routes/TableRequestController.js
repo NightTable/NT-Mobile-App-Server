@@ -1,3 +1,9 @@
+// All information, source code contained in this document 
+// is the property of StrynDev Solutions, LLC. It must not 
+// be transmitted to others without the written consent of 
+// StrynDev Solutions. It must be returned to StrynDev Solutions 
+// when its authorized use is terminated.
+
 const express = require('express');
 const router = express.Router();
 const ObjectId = require('mongodb').ObjectId;
@@ -136,6 +142,30 @@ router.delete('/:tablereqid/:participantId', async (req, res) => {
 
         res.status(400).send({ message: "Invalid request - We were not able to delete the table request "});
     }
+
+
+});
+
+router.get('/tablereq/:tablereqid', async (req, res) => {
+
+
+    let tableRequestIdParam = req.params.tablereqid;
+
+    let retrievedTableRequestObject = null;
+    
+    try {
+
+        retrievedTableRequestObject = await TableRequest.findById(new ObjectId(tableRequestIdParam));
+        res.json(retrievedTableRequestObject);
+        return;
+
+    } catch (err) {
+
+        res.status(400).send({message: "Invalid request - We could not retrieve that specific table request"});
+        return;
+
+    }
+
 
 
 });

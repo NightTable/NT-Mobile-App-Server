@@ -1,3 +1,9 @@
+// All information, source code contained in this document 
+// is the property of StrynDev Solutions, LLC. It must not 
+// be transmitted to others without the written consent of 
+// StrynDev Solutions. It must be returned to StrynDev Solutions 
+// when its authorized use is terminated.
+
 const request = require('supertest');
 const { app } = require('../../server');
 const mongoose = require('mongoose');
@@ -10,13 +16,12 @@ describe('Testing the GET /api/tableconfigurations/club/:clubId endpoint', () =>
 
     beforeAll( async () => {
 
-        await TableConfig.deleteOne({ type: "djGetTableConfigByTableConfigId", price: 10000, size: 5 });
+        await TableConfig.deleteOne({ type: "djGetTableConfigByTableConfigId", minPrice: 10000, recommendedCapacity: 5 });
         
         sampleTC = await TableConfig.create({
             type: "djGetTableConfigByTableConfigId",
-            price: 10000,
-            size: 5,
-            availabilityCount: 2,
+            minPrice: 10000,
+            recommendedCapacity: 5,
             clubId: new ObjectId(),
         });
         await sampleTC.save();
@@ -32,9 +37,8 @@ describe('Testing the GET /api/tableconfigurations/club/:clubId endpoint', () =>
         expect(response.status).toEqual(200);
         expect(response.body[0]._id).toEqual(sampleTC.id);
         expect(response.body[0].type).toEqual('djGetTableConfigByTableConfigId');
-        expect(response.body[0].price).toEqual(10000);
-        expect(response.body[0].size).toEqual(5);
-        expect(response.body[0].availabilityCount).toEqual(2);
+        expect(response.body[0].minPrice).toEqual(10000);
+        expect(response.body[0].recommendedCapacity).toEqual(5);
         expect(JSON.stringify(response.body[0].clubId)).toEqual(JSON.stringify(new ObjectId(sampleTC.clubId)));
     });
 
@@ -54,15 +58,14 @@ describe('Testing the GET /api/tableconfigurations/club/:clubId endpoint', () =>
             .get(`/api/tableconfigurations/club/${sampleTC.clubId}`)
             .set('Accept', 'application/json');
         expect(response.body[0].hasOwnProperty('type')).toEqual(true);
-        expect(response.body[0].hasOwnProperty('price')).toEqual(true);
-        expect(response.body[0].hasOwnProperty('size')).toEqual(true);
-        expect(response.body[0].hasOwnProperty('availabilityCount')).toEqual(true);
+        expect(response.body[0].hasOwnProperty('minPrice')).toEqual(true);
+        expect(response.body[0].hasOwnProperty('recommendedCapacity')).toEqual(true);
         expect(response.body[0].hasOwnProperty('clubId')).toEqual(true);
 
     });
     afterAll( async () => {
 
-        await TableConfig.deleteOne({ _id: new ObjectId(sampleTC.id)});
+        await TableConfig.deleteOne({ type: "djGetTableConfigByTableConfigId", minPrice: 10000, recommendedCapacity: 5 });
 
         mongoose.connection.close();
     });

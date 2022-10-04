@@ -1,3 +1,9 @@
+// All information, source code contained in this document 
+// is the property of StrynDev Solutions, LLC. It must not 
+// be transmitted to others without the written consent of 
+// StrynDev Solutions. It must be returned to StrynDev Solutions 
+// when its authorized use is terminated.
+
 const { app } = require('../../server');
 const request = require('supertest');
 const mongoose = require('mongoose');
@@ -16,8 +22,8 @@ describe('Testing the DELETE /api/tableconfigurations/club/:clubId endpoint', ()
         
         sampleTableConfiguration = await TableConfiguration.create({
             type: "djDeleteTableConfigByTableConfigId",
-            price: 10000,
-            size: 5,
+            minPrice: 10000,
+            recommendedCapacity: 5,
             availabilityCount: 2,
             clubId: new ObjectId(),
         });
@@ -26,8 +32,8 @@ describe('Testing the DELETE /api/tableconfigurations/club/:clubId endpoint', ()
 
         sampleTableConfigurationTwo = await TableConfiguration.create({
             type: "standing deluxeDeleteTableConfigByTableConfigId",
-            price: 20000,
-            size: 10,
+            minPrice: 20000,
+            recommendedCapacity: 10,
             availabilityCount: 1,
             clubId: new ObjectId(),
         });
@@ -70,8 +76,9 @@ describe('Testing the DELETE /api/tableconfigurations/club/:clubId endpoint', ()
 
     afterAll( async () => {
 
-        await TableConfiguration.deleteOne({ _id: new ObjectId(sampleTableConfiguration.id)});
-
+        await TableConfiguration.deleteOne({ type: "djDeleteTableConfigByTableConfigId" });
+        await TableConfiguration.deleteOne({ type: "standing deluxeDeleteTableConfigByTableConfigId" });
+        
         mongoose.connection.close();
     });
 
