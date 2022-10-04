@@ -49,7 +49,7 @@ router.post ('/register', async (req, res) => {
                 role: null,
             });
             await newUser.save();
-            let token = await generateAccessToken(newUser.toJSON());
+            let token = await generateAccessToken(newUser.toObject());
             let transporter =  nodemailer.createTransport(
                 sendgridTransport({
                     auth: {
@@ -100,7 +100,7 @@ router.post('/register', (req, res) => {
 
 });
 
-async function generateAccessToken(user){
+function generateAccessToken(user){
     return Token.sign(user, process.env.AUTH_ACCESS_TOKEN_SECRET, { expiresIn: '900s' })
 }
 
