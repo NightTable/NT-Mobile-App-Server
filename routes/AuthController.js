@@ -1,12 +1,22 @@
 const express = require('express');
+const passport = require('passport')
 const router = express.Router();
-const Bcrypt = require('bcrypt');
 const Token = require('jsonwebtoken');
-const User = require("../models/User");
+const Bcrypt = require('bcrypt');
+const User = require('../models/User');
+const RefreshToken = require('../models/RefreshToken')
 const nodemailer = require('nodemailer');
 const sendgridTransport = require('nodemailer-sendgrid-transport');
-const RefreshToken = require('../models/RefreshToken');
+const LocalStrategy = require('passport-local').Strategy
+
+
+
+
+const flash = require('express-flash')
+const session = require('express-session')
+const methodOverride = require('method-override')
 const { ObjectId } = require('mongodb');
+
 
 require('dotenv').config()
 
@@ -66,30 +76,15 @@ router.post ('/register', async (req, res) => {
 
 });
 
-router.post('/login/token', async (req, res) => {
+router.get('/successful/login',checkAuthenticated, async(req, res) => {
+    console.log("you successfully logged in");
+})
 
-    let serverRefreshTokenParam = req.body.serverRefreshToken;
-    try {
-        let token = await RefreshToken.find({serverRefreshToken: serverRefreshTokenParam});
-        if (token.length === 0){
-            return res.sendStatus(401).send({message: "Invalid input - either input has syntax errors or token is not valid."});
-        }
-        else{
-            Token.verify(serverRefreshTokenParam, process.env.AUTH_REFRESH_TOKEN_SECRET, (error, user) => {
-                if (error){
-                    return res.sendStatus(401).send({message: "Invalid input - either input has syntax errors or token is not valid."});
-                }
-                else{
-                    let accessToken = generateAccessToken(user);
-                    return res.json({serverAccessToken: accessToken});
-                }
-            });
-        }
-
-    } catch (error) {
-        return res.sendStatus(401).send({message: "Invalid input - either input has syntax errors or token is not valid."});
-    }
-});
+router.post('/login/inhouse', checkNotAuthenticated,passport.authenticate('local', {
+    successRedirect: 'api/auth/successful/login',
+    failureRedirect: '/api/auth/login/inhouse',
+    failureFlash: true,
+}));
 
 router.post('/register', (req, res) => {
 
@@ -108,5 +103,49 @@ router.post('/register', (req, res) => {
 function generateAccessToken(user){
     return Token.sign(user, process.env.AUTH_ACCESS_TOKEN_SECRET, { expiresIn: '900s' })
 }
+
+async function authenticateInhouse(user, passwordParam, res){
+    try {
+        if (user.length === 0){
+            return res.status(401).send({message: "invalid information" });
+        }
+        const comparedResult = await Bcrypt.compare(passwordParam, user[0].password);
+        if (comparedResult){
+            const accessToken = await generateAccessToken(user[0].toJSON());
+            const refreshToken = Token.sign(user[0].toJSON(), process.env.AUTH_REFRESH_TOKEN_SECRET);
+            const tokenObj = await RefreshToken.create({
+                serverRefreshToken: refreshToken
+            });
+            await tokenObj.save();
+            return res.json({isSetup: user[0].isProfileSetup, firstName: user[0].firstName, lastName: user[0].lastName,serverAccessToken: accessToken, serverRefreshToken: refreshToken});
+        }
+        else{
+            return res.status(401).send({message: "invalid information" });
+        }
+
+    } catch (error) {
+        return res.status(401).send({message: "invalid information"});
+    }
+}
+
+async function checkAuthenticated(req, res, next) {
+    if (req.isAuthenticated()) {
+        return next()
+    }
+}
+
+async function checkNotAuthenticated(req, res) {
+    if (req.isAuthenticated()) {
+        return res.redirect('api/auth/successful/login') 
+    }
+    const user = await User.find({ userName: req.body.userName });
+    passport.use(new LocalStrategy({usernameField: "userName"}, authenticateInhouse(user, req.body.password, res)));
+    passport.serializeUser((user, done) => done(null, user.id))
+    passport.deserializeUser((id, done) => {
+        const theUser = User.findById({_id: new ObjectId(id)});
+        return done(null, theUser);
+    });
+}
+
 
 module.exports = router;

@@ -14,25 +14,50 @@ router.get('/tablereq/:tablereqid', async (req, res) => {
 
     let tableRequestIdParam = req.params.tablereqid;
 
-    let retrievedTableRequestObject = null;
-    let retrievedTableParticipantMappings = null;
-    
+    let retrievedTableRequestObject = null;    
     try {
 
         retrievedTableRequestObject = await TableRequest.findById(new ObjectId(tableRequestIdParam));
 
-        retrievedTableParticipantMappings = await TableRequestParticipantMapping.find({ tableReqId: retrievedTableRequestObject.id});
+        const tableReqObject = retrievedTableRequestObject.toObject();
 
-        let tableReqObject = retrievedTableRequestObject.toObject();
+        const tableReqTableConfig = await TableConfiguration.findById(retrievedTableRequestObject.tableConfigId);
 
-        tableReqObject['participants'] = retrievedTableParticipantMappings;
+        const pendingParticipantsUserObjects = [];
+        const currentParticipantsUserObjects = []
+        const organizerParticipantUserObjects = []
+        const allParticipants = await TableRequestParticipantMapping.find({tableReqId: retrievedTableRequestObject.id});
+
+        for (let i = 0; i < allParticipants.length; i++){
+            if (allParticipants[i].isInvitedPending && !allParticipants[i].isRequestOrganizer){
+                const tempPendingParticipantObject = await Participant.findById(new ObjectId(allParticipants[i].participantId));
+                const pendingParticipantUserObject = await tempPendingParticipantObject.populate('userId');
+                pendingParticipantsUserObjects.push(pendingParticipantUserObject);
+
+            }
+            if (allParticipants[i].isActiveParticipant && !allParticipants[i].isRequestOrganizer){
+                const tempCurrentParticipantObject = await Participant.findById(new ObjectId(allParticipants[i].participantId));
+                const currentParticipantObject = await tempCurrentParticipantObject.populate('userId');
+                currentParticipantsUserObjects.push(currentParticipantObject);
+            }
+            if (allParticipants[i].isRequestOrganizer){
+                const tempOrganizerParticipantObject = await Participant.findById(new ObjectId(allParticipants[i].participantId));
+                const organizerParticipantObject = await tempOrganizerParticipantObject.populate('userId');
+                organizerParticipantUserObjects.push(organizerParticipantObject);
+            }
+
+        }
+
+        tableReqObject['pendingParticipants'] = pendingParticipantsUserObjects;
+        tableReqObject['currentParticipants'] = currentParticipantsUserObjects;
+        tableReqObject['organizerUserObjects'] = organizerParticipantUserObjects;
+        tableReqObject['tableConfigDetails'] = await tableReqTableConfig.populate();
 
         res.json(tableReqObject);
         
         return;
 
     } catch (err) {
-
         res.status(400).send({message: "Invalid request - We could not retrieve that specific table request"});
         return;
 
@@ -111,30 +136,6 @@ router.delete('/:tablereqid/:participantId', async (req, res) => {
 
         res.status(400).send({ message: "Invalid request - We were not able to delete the table request "});
     }
-
-
-});
-
-router.get('/tablereq/:tablereqid', async (req, res) => {
-
-
-    let tableRequestIdParam = req.params.tablereqid;
-
-    let retrievedTableRequestObject = null;
-    
-    try {
-
-        retrievedTableRequestObject = await TableRequest.findById(new ObjectId(tableRequestIdParam));
-        res.json(retrievedTableRequestObject);
-        return;
-
-    } catch (err) {
-
-        res.status(400).send({message: "Invalid request - We could not retrieve that specific table request"});
-        return;
-
-    }
-
 
 
 });
