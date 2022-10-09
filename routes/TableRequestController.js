@@ -81,29 +81,47 @@ router.get('/club/:clubid', async (req, res) => {
     try {
 
         retrievedTableRequestObjects = await TableRequest.find({ clubId: new ObjectId(clubIdParam) });
+        console.log(retrievedTableRequestObjects, "retrievedTableRequestObjects\n");
 
         let modifiedTableRequestList = [];
 
         for (let i = 0; i < retrievedTableRequestObjects.length; i++) {
 
             let retrievedTableObject = retrievedTableRequestObjects[i];
+            console.log(retrievedTableObject, "retrievedTableObject\n");
 
             let associatedTableParticipantMapping = await TableRequestParticipantMapping.find({ tableReqId: new ObjectId(retrievedTableObject.id) });
+            console.log(associatedTableParticipantMapping, "associatedTableParticipantMapping\n");
 
             for (let j = 0; j < associatedTableParticipantMapping.length; j++) {
 
 
                 let tableParticipantMappingObject = associatedTableParticipantMapping[j];
+                console.log(tableParticipantMappingObject, "tableParticipantMappingObject\n");
 
 
                 if (tableParticipantMappingObject.isRequestOrganizer) {
 
                     let convertedTableObject = retrievedTableObject.toObject();
+                    console.log(convertedTableObject, "convertedTableObject\n");
 
+                    let orgPartId = tableParticipantMappingObject.participantId;
+                    console.log(orgPartId, "orgPartId\n")
+                    let orgParticipantObject = await Participant.findById(new ObjectId(orgPartId));
+                    console.log(orgParticipantObject, "orgParticipantObject\n")
+                    let orgUserObj = await User.findById(new ObjectId(orgParticipantObject.userId));
+                    console.log(orgUserObj, "orgUserObj\n")
+                    let orgProfilePic = orgUserObj.profilePhoto
+                    console.log(orgProfilePic, "orgProfilePic\n")
+                    let orgName = orgUserObj.firstName + " " + orgUserObj.lastName;
+                    console.log(orgName, "orgName\n")
                     modifiedTableRequestList.push({
                         ...convertedTableObject,
-                        organizerId: tableParticipantMappingObject.participantId
+                        organizerId: tableParticipantMappingObject.participantId,
+                        photo: orgProfilePic,
+                        name: orgName
                     });
+                    console.log(modifiedTableRequestList, "modifiedTableRequestList\n");
 
                 }
 
