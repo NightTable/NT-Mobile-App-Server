@@ -32,20 +32,25 @@ require("dotenv").config();
 router.post("/generateOTP", async (req, res) => {
   try {
     let { phoneNumberParam } = req.body;
-    console.log(phoneNumberParam);
+    if(!phoneNumberParam){
+      return res.status(400).send({status:false, message: "bad equest"})
+    }
+    // console.log(phoneNumberParam);
     // const otp = otpGenerator.generate(6, { alphabets: false, upperCase: false, specialChars: false, digits:true });
     const otp = Math.floor(100000 + Math.random() * 900000);
     let issuedAtTime = Date.now();
-    console.log(issuedAtTime);
-    let expiryAt = issuedAtTime + 10000; //expiry of 10 seconds
+    // console.log(issuedAtTime);
+    let expiryAt = issuedAtTime + 100000; //expiry of 100 seconds
     // console.log(expiryAt);
     let otpInstance = {
       otp: otp,
       phoneNumber: phoneNumberParam,
       expiryAt: expiryAt,
     };
-    let otpInDbInstance = await otpModel.create(otpInstance);
+    //saving the OTP in DB
+    let otpInDbInstance = await otpModel.findOneAndUpdate({phoneNumber:phoneNumberParam},otpInstance,{upsert:true, new:true});
 
+      //triggering a SMS to client mobile using twillio
     client.messages
       .create({
         body: `OTP is ${otp}`,
@@ -70,11 +75,19 @@ router.post("/generateOTP", async (req, res) => {
 router.post("/verifyOtp", async (req, res) => {
   try {
     let { reqPhoneNumber, reqOtp } = req.body;
+    if(!reqPhoneNumber){
+      return res.status(400).send({status:false, message: "bad equest"})
+    }
+    if(!reqOtp){
+      return res.status(400).send({status:false, message: "bad equest"})
+    }
+
+    //getting OTP data from DB to match with the OTP in request
     let otpFromDb = await otpModel
       .findOne({ phoneNumber: reqPhoneNumber })
       .select({ otp: 1, phoneNumber: 1, _id: 0, expiryAt: 1 });
       let timeTOExpiry = Number(Date.now()) - Number(otpFromDb.expiryAt);
-    console.log(timeTOExpiry , typeof timeTOExpiry);
+    // console.log(timeTOExpiry , typeof timeTOExpiry);
 
     if (timeTOExpiry >= 0) {
       return res.status(400).send({ status: false, message: "Otp expired" });
