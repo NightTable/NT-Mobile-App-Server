@@ -44,8 +44,14 @@ app.use(cors());
 
 app.use(express.urlencoded({ extended: false }))
 app.use(flash())
+// app.use(session({
+//   secret: process.env.SESSION_SECRET,
+//   resave: false,
+//   saveUninitialized: false
+// }))
+//commented above code and added below code to run in local
 app.use(session({
-  secret: process.env.SESSION_SECRET,
+  secret: process.env.AUTH_ACCESS_TOKEN_SECRET,
   resave: false,
   saveUninitialized: false
 }))

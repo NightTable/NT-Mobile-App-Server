@@ -1,5 +1,4 @@
 const express = require('express');
-
 const User = require('../models/User');
 const Club = require('../models/Club');
 const Event = require('../models/Event');
