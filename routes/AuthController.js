@@ -33,14 +33,14 @@ router.post("/generateOTP", async (req, res) => {
   try {
     let { phoneNumberParam } = req.body;
     if(!phoneNumberParam){
-      return res.status(400).send({status:false, message: "bad equest"})
+      return res.status(400).send({status:false, message: "bad request"})
     }
     // console.log(phoneNumberParam);
     // const otp = otpGenerator.generate(6, { alphabets: false, upperCase: false, specialChars: false, digits:true });
     const otp = Math.floor(100000 + Math.random() * 900000);
     let issuedAtTime = Date.now();
     // console.log(issuedAtTime);
-    let expiryAt = issuedAtTime + 100000; //expiry of 100 seconds
+    let expiryAt = issuedAtTime + 100000; //expiry of 100 seconds chnae to 300
     // console.log(expiryAt);
     let otpInstance = {
       otp: otp,
@@ -76,16 +76,18 @@ router.post("/verifyOtp", async (req, res) => {
   try {
     let { reqPhoneNumber, reqOtp } = req.body;
     if(!reqPhoneNumber){
-      return res.status(400).send({status:false, message: "bad equest"})
+      return res.status(400).send({status:false, message: "bad request"})
     }
     if(!reqOtp){
-      return res.status(400).send({status:false, message: "bad equest"})
+      return res.status(400).send({status:false, message: "bad request"})
     }
 
     //getting OTP data from DB to match with the OTP in request
     let otpFromDb = await otpModel
       .findOne({ phoneNumber: reqPhoneNumber })
       .select({ otp: 1, phoneNumber: 1, _id: 0, expiryAt: 1 });
+
+      //need to add if null returned
       let timeTOExpiry = Number(Date.now()) - Number(otpFromDb.expiryAt);
     // console.log(timeTOExpiry , typeof timeTOExpiry);
 
