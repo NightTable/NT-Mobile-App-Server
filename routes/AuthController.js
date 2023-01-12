@@ -23,11 +23,21 @@ const flash = require("express-flash");
 const session = require("express-session");
 const methodOverride = require("method-override");
 const { ObjectId } = require("mongodb");
+let Country = require('country-state-city').Country;
+
 
 require("dotenv").config();
 
 
-
+router.get("/getCountryCodes", async(req,res)=> {
+  let countries = (Country.getAllCountries()).map(ele => {
+    return({
+      name: ele.name,
+      phoneNumberCode: ele.phonecode
+    })
+  });
+  return res.status(200).send({status:true, data: countries})
+})
 
 router.post("/generateOTP", async (req, res) => {
   try {
