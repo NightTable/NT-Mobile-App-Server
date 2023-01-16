@@ -11,56 +11,69 @@ const Schema = mongoose.Schema;
 const userSchema = new Schema({
     firstName: {
       type: String,
-      required: true
+      // required: true
     },
     lastName: {
       type: String,
-      required: true
+      // required: true
     },
     userName: {
       type: String,
-      required: false
+      // required: false
     },
     profilePhoto: {
       type: String,
-      required: false
+      // required: false
     },
     gender: {
       type: String,
-      required: true
+      // required: true
     },
     email: {
       type: String,
-      required: false
+      // required: false
     },
-    gmail: {
-      type: String,
-      required: false
-    },
+    // gmail: {
+    //   type: String,
+    //   required: false
+    // },
     isProfileSetup: {
       type: Boolean,
-      required: true
+      // required: true,
+      default: false
     },
     facebookEmail: {
       type: String,
-      required: false
+      // required: false
     },
-    isIntermediarySetup: {
-      type: Boolean,
-      required: true
-    },
+    // isIntermediarySetup: {
+    //   type: Boolean,
+    //   required: true
+    // },
     instaHandle: {
       type: String,
-      required: false
+      // required: false
     },
     phoneNumber: {
       type: Number, 
       required: true
     },
-    password: {
-      type: String,
-      required: true
+    // password: {
+    //   type: String,
+    //   required: true
+    // },
+    visits:{
+      type: Number,
+      default:0
     },
+    inHouseSpend:{
+      type:Number,
+      default: 0
+    },
+    canChangeTableMinimums: {
+      type: Boolean,
+      default: false
+    }
 });
 
 module.exports = mongoose.model('User', userSchema);
