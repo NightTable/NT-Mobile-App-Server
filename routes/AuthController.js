@@ -24,6 +24,7 @@ const session = require("express-session");
 const methodOverride = require("method-override");
 const { ObjectId } = require("mongodb");
 let Country = require("country-state-city").Country;
+let axios = require("axios");
 
 require("dotenv").config();
 
@@ -37,12 +38,35 @@ router.get("/getCountryCodes", async (req, res) => {
   return res.status(200).send({ status: true, data: countries });
 });
 
+const checkToken = async (req, res) => {
+  let token1 = req.header("Authorization");
+  if (!token1)
+    return res
+      .status(400)
+      .send({ status: false, message: "token must be present" });
+  token1 = token1.split(" ");
+  const token = token1[1];
+  let decodedToken = jwt.verify(token, "nightclubapp");
+  if(!decodedToken){
+    return res.status(403).send({status:false, message:'Bad token'});
+  }
+  req.loggedUser = decodedToken.userId;
+};
+
+// router.get('/checkAuthenticated', checkToken);
+
 router.post("/generateOTP", async (req, res) => {
   try {
     let { phoneNumberParam } = req.body;
     if (!phoneNumberParam) {
       return res.status(400).send({ status: false, message: "bad request" });
     }
+    let numberValidation = await axios.get(`https://phonevalidation.abstractapi.com/v1/?api_key=96832543ded64bbd92d9bb974e2437d8&domain=https://phonevalidation.abstractapi.com/v1/api_key=96832543ded64bbd92d9bb974e2437d8&phone=${phoneNumberParam}`)
+    console.log(numberValidation.data);
+    if(!numberValidation.data.valid){
+      return res.status(400).send({status:false, message: 'invalid Phone number'})
+    }
+    
     // console.log(phoneNumberParam);
     // const otp = otpGenerator.generate(6, { alphabets: false, upperCase: false, specialChars: false, digits:true });
     const otp = Math.floor(100000 + Math.random() * 900000);
@@ -110,18 +134,18 @@ router.post("/verifyOtp", async (req, res) => {
         { upsert: true, new: true }
       );
       if (!user) {
-        return res
-          .status(400)
-          .send({
-            status: false,
-            message: "Registration failed. Please try again.",
-          });
+        return res.status(400).send({
+          status: false,
+          message: "Registration failed. Please try again.",
+        });
       } else {
         // allow user login and generate a token
         let userId = user._id;
-        let token = jwt.sign({userId:userId.toString()}, "nightclubapp")
+        let token = jwt.sign({ userId: userId.toString() }, "nightclubapp");
         //will add expiry in the later stage of testing...
-        return res.status(200).send({status: true, token: token, message: 'user logged in!'})
+        return res
+          .status(200)
+          .send({ status: true, token: token, message: "user logged in!" });
       }
       // if(!user){
       //   return res.redirect("api/auth/register");
