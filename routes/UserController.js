@@ -13,6 +13,9 @@ const ObjectId = require('mongodb').ObjectId;
 const url = require('url');
 
 
+
+
+
 router.get('/query', async (req, res) => {
 
     try {
@@ -211,21 +214,19 @@ router.get('/friends/:userid', async (req, res) => {
 
 
 router.get('/:userid', async (req, res) => {
-
     let userIdParam = req.params.userid;
-
     try {
 
-        retrievedUserObject = await User.findById(new ObjectId(userIdParam));
-        res.json(retrievedUserObject);
-        return;
-
+        retrievedUserObject = await User.findById(userIdParam);
+        if(!retrievedUserObject){
+            return res.status(400).send({status: false, message: "user not found"})
+        }
+        return res.status(400).send({status:true, data: retrievedUserObject});
     } catch (err) { 
 
-        res.status(400).send({ message: "The requested user was not found" });
+        res.status(500).send({ status: false, message: err.message });
         return;
     }
-
 });
 
 router.post('/', async (req, res) => {

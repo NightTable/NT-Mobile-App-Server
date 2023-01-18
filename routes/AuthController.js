@@ -62,7 +62,7 @@ router.post("/generateOTP", async (req, res) => {
       return res.status(400).send({ status: false, message: "bad request" });
     }
     let numberValidation = await axios.get(`https://phonevalidation.abstractapi.com/v1/?api_key=96832543ded64bbd92d9bb974e2437d8&domain=https://phonevalidation.abstractapi.com/v1/api_key=96832543ded64bbd92d9bb974e2437d8&phone=${phoneNumberParam}`)
-    console.log(numberValidation.data);
+    // console.log(numberValidation.data);
     if(!numberValidation.data.valid){
       return res.status(400).send({status:false, message: 'invalid Phone number'})
     }
@@ -145,7 +145,7 @@ router.post("/verifyOtp", async (req, res) => {
         //will add expiry in the later stage of testing...
         return res
           .status(200)
-          .send({ status: true, token: token, message: "user logged in!" });
+          .send({ status: true, token: token, message: "user logged in!", data: user });
       }
       // if(!user){
       //   return res.redirect("api/auth/register");
@@ -164,81 +164,81 @@ router.post("/verifyOtp", async (req, res) => {
   }
 });
 
-router.post("/register", async (req, res) => {
-  let firstNameParam = req.body.firstName;
-  let lastNameParam = req.body.lastName;
-  let genderParam = req.body.gender;
-  let emailParam = req.body.email;
-  let phoneNumberParam = req.body.phoneNumber;
-  let passwordParam = req.body.password;
-  let isIntermediarySetupParam = req.body.isIntermediarySetup;
-  try {
-    let registeredUser = await User.find({ email: emailParam });
-    if (registeredUser.length === 0) {
-      let hashedPassword = await Bcrypt.hash(passwordParam, 10);
-      let newUser = await User.create({
-        firstName: firstNameParam,
-        lastName: lastNameParam,
-        userName: null,
-        profilePhoto: null,
-        gender: genderParam,
-        email: emailParam,
-        isProfileSetup: false,
-        isIntermediarySetup: isIntermediarySetupParam,
-        instaHandle: null,
-        phoneNumber: phoneNumberParam,
-        password: hashedPassword,
-        role: null,
-      });
-      await newUser.save();
-      let token = await generateAccessToken(newUser.toObject());
-      let transporter = nodemailer.createTransport(
-        sendgridTransport({
-          auth: {
-            api_key: process.env.SENDGRID_APIKEY,
-          },
-        })
-      );
-      let mailOptions = {
-        from: "master@nighttable.co",
-        to: newUser.email,
-        subject: "Account Verification Link",
-        text:
-          "Hello " +
-          firstNameParam +
-          ",\n\n" +
-          "Please verify your account by clicking the link: \nhttp://" +
-          req.headers.host +
-          "/confirmation/" +
-          newUser.email +
-          "/" +
-          token +
-          "\n\nThank You!\n",
-      };
-      transporter.sendMail(mailOptions, function (error) {
-        if (error) {
-          return res.status(400).send({
-            message: "The provided registration information is not valid",
-          });
-        }
-        return res.status(200).send({
-          message:
-            "A verification email has been sent to " +
-            newUser.email +
-            ". It will be expire after one day. If you do not get the verification email, click on resend token.",
-        });
-      });
-    } else {
-      return res.status(400).send({
-        message: "The provided registration information is not valid",
-      });
-    }
-  } catch (error) {
-    return res
-      .status(400)
-      .send({ message: "The provided registration information is not valid" });
-  }
-});
+// router.post("/register", async (req, res) => {
+//   let firstNameParam = req.body.firstName;
+//   let lastNameParam = req.body.lastName;
+//   let genderParam = req.body.gender;
+//   let emailParam = req.body.email;
+//   let phoneNumberParam = req.body.phoneNumber;
+//   let passwordParam = req.body.password;
+//   let isIntermediarySetupParam = req.body.isIntermediarySetup;
+//   try {
+//     let registeredUser = await User.find({ email: emailParam });
+//     if (registeredUser.length === 0) {
+//       let hashedPassword = await Bcrypt.hash(passwordParam, 10);
+//       let newUser = await User.create({
+//         firstName: firstNameParam,
+//         lastName: lastNameParam,
+//         userName: null,
+//         profilePhoto: null,
+//         gender: genderParam,
+//         email: emailParam,
+//         isProfileSetup: false,
+//         isIntermediarySetup: isIntermediarySetupParam,
+//         instaHandle: null,
+//         phoneNumber: phoneNumberParam,
+//         password: hashedPassword,
+//         role: null,
+//       });
+//       await newUser.save();
+//       let token = await generateAccessToken(newUser.toObject());
+//       let transporter = nodemailer.createTransport(
+//         sendgridTransport({
+//           auth: {
+//             api_key: process.env.SENDGRID_APIKEY,
+//           },
+//         })
+//       );
+//       let mailOptions = {
+//         from: "master@nighttable.co",
+//         to: newUser.email,
+//         subject: "Account Verification Link",
+//         text:
+//           "Hello " +
+//           firstNameParam +
+//           ",\n\n" +
+//           "Please verify your account by clicking the link: \nhttp://" +
+//           req.headers.host +
+//           "/confirmation/" +
+//           newUser.email +
+//           "/" +
+//           token +
+//           "\n\nThank You!\n",
+//       };
+//       transporter.sendMail(mailOptions, function (error) {
+//         if (error) {
+//           return res.status(400).send({
+//             message: "The provided registration information is not valid",
+//           });
+//         }
+//         return res.status(200).send({
+//           message:
+//             "A verification email has been sent to " +
+//             newUser.email +
+//             ". It will be expire after one day. If you do not get the verification email, click on resend token.",
+//         });
+//       });
+//     } else {
+//       return res.status(400).send({
+//         message: "The provided registration information is not valid",
+//       });
+//     }
+//   } catch (error) {
+//     return res
+//       .status(400)
+//       .send({ message: "The provided registration information is not valid" });
+//   }
+// });
 
 // router.get("/successful/login", checkAuthenticated, async (req, res) => {
 //   console.log("you successfully logged in");
