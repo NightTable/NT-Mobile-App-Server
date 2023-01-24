@@ -26,27 +26,56 @@ const representativeSchema = new Schema({
         type: String,
         required: true
     },
-    password: {
-        type: String,
-        required: true
-    },
+    // password: {
+    //     type: String,
+    //     required: true
+    // }, how do we handle representative login then
     username: {
         type: String,
         required: true
     },
-    isVerified: {
-        type: Boolean,
-        required: true
-    },
-    clubId:{
+    // isVerified: {
+    //     type: Boolean,
+    //     required: true
+    // }, not there in schema
+    clubId:[{
         type: Schema.Types.ObjectId,
         ref: 'Club',
         required: true
-    },
+    }],
     role: {
         type: String,
-        required: true
+        required: true,
+        enum: ["management", "staff", "host", "promoter","ntadmin" ]
     },
+    tableConfigPrivilege:{
+        type: Boolean,
+        required: true,
+    },
+    eventPrivileges:{
+        type: Boolean,
+        required: true,
+    },
+    reservationManagementPrivileges:{
+        type: Boolean,
+        required: true,
+    },
+    mobileAppTableMinimumPrivileges:{
+        type: Boolean,
+        required: true,
+    },
+    menuItemPrivileges:{
+        type: Boolean,
+        required: true,
+    },
+    clubPrivileges:{
+        type: Boolean,
+        required: true,
+    },
+    representativePrivileges:{
+        type: Boolean,
+        required: true,
+    }
 });
 
 module.exports = mongoose.model('Representative', representativeSchema);

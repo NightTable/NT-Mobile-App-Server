@@ -34,6 +34,7 @@ const transactionControllerRoutes = require("./routes/TransactionController");
 const messageControllerRoutes = require("./routes/MessageController");
 const photoControllerRoutes = require("./routes/PhotoController");
 const roomControllerRoutes = require("./routes/RoomController");
+const representativeControllerRoutes = require("./routes/RepresentativeController");
 const jwt = require("jsonwebtoken");
 let socketNameSpaces = ["tableReqNameSpace", "messageChatNamespace"];
 let user = require("./models/User");
@@ -76,6 +77,7 @@ app.use("/api/transactions", transactionControllerRoutes);
 app.use("/api/messages", messageControllerRoutes);
 app.use("/api/photos", photoControllerRoutes);
 app.use("/api/rooms", roomControllerRoutes);
+// app.use("/api/representatives", representativeControllerRoutes);
 
 configureTestInterfaceRoutes(app);
 
@@ -102,9 +104,7 @@ app.get("/session", async (req, res, next) => {
     }
 
     // let loggedInUser = await user.findById(decodedToken.userId);
-    return res
-      .status(200)
-      .send({ status: true, message: "success"});
+    return res.status(200).send({ status: true, message: "success" });
     // console.log(loggedInUser);
     // req.loggedUser = decodedToken.userId;
   } catch (error) {

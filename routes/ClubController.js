@@ -7,10 +7,27 @@
 const express = require("express");
 const Region = require("../models/Region");
 const router = express.Router();
-const { getDistanceFromLatLonInMi } = require("../distanceAlgorithm");
+// const { getDistanceFromLatLonInMi } = require("../distanceAlgorithm");
 const Club = require("../models/Club");
 const User = require("../models/User");
 const { ObjectId } = require("mongodb");
+
+router.post("/createClub", async (req, res) => {
+  try {
+    let clubData = req.body;
+    console.log(clubData);
+    let createdClub = await Club.create(clubData);
+    return res
+      .status(201)
+      .send({ status: true, message: "success", data: createdClub });
+  } catch (error) {
+    console.log('111111111111111111');
+    return res.status(500).send({ status: false, message: error.message });
+  }
+});
+
+
+
 
 router.put("/club/:clubid", async (req, res) => {
   let clubIdParam = req.params.clubid;
@@ -159,6 +176,20 @@ router.post("/user/:userid", async (req, res) => {
   }
 });
 
+router.get("/clubs", async (req, res) => {
+  let filter = req.body;
+
+  let clubs = await Club.find(filter).lean();
+  if (!clubs.length) {
+    return res
+      .status(404)
+      .send({ status: false, message: "no clubs found with given filter" });
+  }
+  return res
+    .status(200)
+    .send({ status: true, message: "success", data: clubs });
+});
+
 router.get("/:clubid", async (req, res) => {
   let clubId = req.params.clubid;
 
@@ -206,9 +237,9 @@ router.get("/coordinates/:lat/:long", async (req, res) => {
       },
     },
   ]);
-if(!closeByClubs.length){
+  if (!closeByClubs.length) {
     return res.status(400).send({ status: false, message: "no club found" });
-}
+  }
   return res.status(200).send({ status: true, data: closeByClubs });
 
   // if (isNaN(clientLatitude) || isNaN(clientLongitude)) {
