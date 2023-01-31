@@ -46,7 +46,7 @@ const representativeSchema = new Schema({
     role: {
         type: String,
         required: true,
-        enum: ["management", "staff", "host", "promoter","ntadmin" ]
+        enum: ["staff", "management", "host", "promoter", "godfather"]
     },
     tableConfigPrivilege:{
         type: Boolean,

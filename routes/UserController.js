@@ -16,31 +16,32 @@ const { send } = require('process');
 
 //api to add full detailks of user once he wants to access the table
 router.put('/user/:userId', async(req,res)=>{
+    
     let userId = req.params.userId;
 
     let {firstName, lastName, userName, phoneNumber, profilePhoto, gender, email, isProfileSetup, facebookEmail,  instaHandle} = req.body;
 
     //checking if the required values are there or not
-    if(!firstName) return res.status(400).send({status:false, message: failed});
-    if(!lastName) return res.status(400).send({status:false, message: failed});
-    if(!userName) return res.status(400).send({status:false, message: failed});
-    if(!profilePhoto) return res.status(400).send({status:false, message: failed});
-    if(!gender) return res.status(400).send({status:false, message: failed});
-    if(!email) return res.status(400).send({status:false, message: failed});
-    if(!isProfileSetup) return res.status(400).send({status:false, message: failed});
-    if(!facebookEmail) return res.status(400).send({status:false, message: failed});
-    if(!instaHandle) return res.status(400).send({status:false, message: failed});
-    if(!phoneNumber) return res.status(400).send({status:false, message: failed}); // need to add proper phone number validation
+    if(!firstName) return res.status(400).send({status:false, message: 'failed'});
+    if(!lastName) return res.status(400).send({status:false, message: 'failed'});
+    if(!userName) return res.status(400).send({status:false, message: 'failed'});
+    if(!profilePhoto) return res.status(400).send({status:false, message: 'failed'});
+    if(!gender) return res.status(400).send({status:false, message: 'failed'});
+    if(!email) return res.status(400).send({status:false, message: 'failed'});
+    if(!isProfileSetup) return res.status(400).send({status:false, message: 'failed'});
+    if(!facebookEmail) return res.status(400).send({status:false, message: 'failed'});
+    if(!instaHandle) return res.status(400).send({status:false, message: 'failed'});
+    if(!phoneNumber) return res.status(400).send({status:false, message: 'failed'}); // need to add proper phone number validation
 
     //checking if they are not empty spaces
-    if(!firstName.trim()) return res.status(400).send({status:false, message: failed});
-    if(!lastName.trim()) return res.status(400).send({status:false, message: failed});
-    if(!userName.trim()) return res.status(400).send({status:false, message: failed});
-    if(!profilePhoto.trim()) return res.status(400).send({status:false, message: failed});
-    if(!gender.trim()) return res.status(400).send({status:false, message: failed});
-    if(!email.trim()) return res.status(400).send({status:false, message: failed});
-    if(!facebookEmail.trim()) return res.status(400).send({status:false, message: failed});
-    if(!instaHandle.trim()) return res.status(400).send({status:false, message: failed});
+    if(!firstName.trim()) return res.status(400).send({status:false, message: 'failed'});
+    if(!lastName.trim()) return res.status(400).send({status:false, message: 'failed'});
+    if(!userName.trim()) return res.status(400).send({status:false, message: 'failed'});
+    if(!profilePhoto.trim()) return res.status(400).send({status:false, message: 'failed'});
+    if(!gender.trim()) return res.status(400).send({status:false, message: 'failed'});
+    if(!email.trim()) return res.status(400).send({status:false, message: 'failed'});
+    if(!facebookEmail.trim()) return res.status(400).send({status:false, message: 'failed'});
+    if(!instaHandle.trim()) return res.status(400).send({status:false, message: 'failed'});
 
     let updatedUser = await User.findOneAndUpdate({_id:userId}, req.body, {new:true}).lean();
     if(!updatedUser) return res.status(404).send({status:false, message: "failed! No user found"});

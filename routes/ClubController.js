@@ -15,13 +15,26 @@ const { ObjectId } = require("mongodb");
 router.post("/createClub", async (req, res) => {
   try {
     let clubData = req.body;
-    console.log(clubData);
+    // console.log(clubData);
+    let{name, instaHandle, address, website, stripeAccountNumber, ownedBy} = clubData;
+    
+    if(!name) return res.status(400).send({status:false, message: 'failed'});
+    if(!instaHandle) return res.status(400).send({status:false, message: 'failed'});
+    if(!address) return res.status(400).send({status:false, message: 'failed'});
+    if(!website) return res.status(400).send({status:false, message: 'failed'});
+    if(!stripeAccountNumber) return res.status(400).send({status:false, message: 'failed'});
+    if(!ownedBy) return res.status(400).send({status:false, message: 'failed'});
+
+
+
+
+
     let createdClub = await Club.create(clubData);
     return res
       .status(201)
       .send({ status: true, message: "success", data: createdClub });
   } catch (error) {
-    console.log('111111111111111111');
+    // console.log('111111111111111111');
     return res.status(500).send({ status: false, message: error.message });
   }
 });
