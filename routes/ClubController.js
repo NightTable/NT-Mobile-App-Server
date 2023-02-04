@@ -16,70 +16,47 @@ router.post("/createClub", async (req, res) => {
   try {
     let clubData = req.body;
     // console.log(clubData);
-    let{name, instaHandle, address, website, stripeAccountNumber, ownedBy} = clubData;
-    
-    if(!name) return res.status(400).send({status:false, message: 'failed'});
-    if(!instaHandle) return res.status(400).send({status:false, message: 'failed'});
-    if(!address) return res.status(400).send({status:false, message: 'failed'});
-    if(!website) return res.status(400).send({status:false, message: 'failed'});
-    if(!stripeAccountNumber) return res.status(400).send({status:false, message: 'failed'});
-    if(!ownedBy) return res.status(400).send({status:false, message: 'failed'});
+    // let { name, instaHandle, website, stripeAccountNumber, ownedBy } = clubData;
 
-
-
-
+    // if (!name)
+    //   return res.status(400).send({ status: false, message: "failed" });
+    // if (!instaHandle)
+    //   return res.status(400).send({ status: false, message: "failed" });
+    // if (!website)
+    //   return res.status(400).send({ status: false, message: "failed" });
+    // if (!stripeAccountNumber)
+    //   return res.status(400).send({ status: false, message: "failed" });
+    // if (!ownedBy)
+    //   return res.status(400).send({ status: false, message: "failed" });
 
     let createdClub = await Club.create(clubData);
     return res
       .status(201)
       .send({ status: true, message: "success", data: createdClub });
   } catch (error) {
-    // console.log('111111111111111111');
     return res.status(500).send({ status: false, message: error.message });
   }
 });
 
-
-
-
 router.put("/club/:clubid", async (req, res) => {
-  let clubIdParam = req.params.clubid;
-
-  let nameParam = null;
-  let latitudeParam = null;
-  let longitudeParam = null;
-  let instaHandleParam = null;
-  let phoneNumberParam = null;
-  let addressParam = null;
-  let websiteParam = null;
-
   try {
-    nameParam = req.body.name;
-    latitudeParam = parseFloat(req.body.latitude);
-    longitudeParam = parseFloat(req.body.longitude);
-    instaHandleParam = req.body.instaHandle;
-    phoneNumberParam = parseInt(req.body.phoneNumber);
-    addressParam = req.body.address;
-    websiteParam = req.body.website;
+    let clubId = req.params.clubid;
+    let updateDetails = req.body;
 
-    retrievedClubObject = await Club.findOneAndUpdate(
-      { _id: new ObjectId(clubIdParam) },
-      {
-        name: nameParam,
-        latitude: latitudeParam,
-        longitude: longitudeParam,
-        instaHandle: instaHandleParam,
-        phoneNumber: phoneNumberParam,
-        address: addressParam,
-        website: websiteParam,
-      }
+    let updatedClub = await Club.findOneAndUpdate(
+      { _id: clubId },
+      updateDetails,
+      { new: true }
     );
-
-    res.json({ message: "The specified club was successfully updated" });
-  } catch (exception) {
-    res
-      .status(400)
-      .send({ message: "Invalid request -- The club could not be updated" });
+    if (!updatedClub)
+      return res
+        .status(404)
+        .send({ status: false, message: "club not found!" });
+    return res
+      .status(201)
+      .send({ status: true, message: "club updated", data: updatedClub });
+  } catch (error) {
+    res.status(500).send({ message: error.message });
     return;
   }
 });

@@ -11,60 +11,64 @@ const Schema = mongoose.Schema;
 const clubSchema = new Schema({
   name: {
     type: String,
-    required: true,
+    required: [true, "name is required"],
+    
   },
   location: [Number],
   instaHandle: {
     type: String,
-    required: true,
+    required: [true, "insta handle is required"],
   },
   phoneNumber: {
-    type: Number,
-    required: true,
+    type: String,
+    required: [true, "phone number is required"],
+    unique: [true, "phone number already exists!"]
   },
   address: {
-    type: String,
-    required: true,
+    line1: String,
+    City: {
+      type: String,
+      required: [true, "city is required in address"],
+    },
+    state: String,
+    country: {
+      type: String,
+      required: [true, "country is required in address"],
+    },
   },
   website: {
     type: String,
     required: false,
   },
   photos: [String],
-  //photo vs photoId ???
-  regionId: {
-    type: Schema.Types.ObjectId,
-    ref: "Region",
-    required: true,
-  },
   stripeAccountNumber: {
     type: String,
-    required: true,
+    required: [true, "stripe account number is required"],
   },
-  representativeId:{
-      type: Schema.Types.ObjectId,
-      ref: 'Representative',
+  representativeId: {
+    type: Schema.Types.ObjectId,
+    ref: "Representative",
     //   required: true
   },
   ownedBy: {
     type: String,
     // ref: 'owners',
-    required: true,
+    required: [true, "owned by is required"],
   },
   lineItems: [
     {
       name: {
         type: String,
-        required: true,
+        required: [true, "name of lineItem is required"],
       },
       percentage: {
         type: Number,
-        required: true,
+        required: [true, "percentage for the lineItem is required"],
       },
     },
   ],
 });
 
-clubSchema.index({ name: 1, userId: 1 }, { unique: true });
+// clubSchema.index({ name: 1, userId: 1 }, { unique: true });
 
 module.exports = mongoose.model("Club", clubSchema);
