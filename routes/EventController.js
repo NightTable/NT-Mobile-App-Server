@@ -32,18 +32,19 @@ router.delete('/club/:eventId', async (req, res) => {
 
 router.get('/club/:clubid', async (req, res) => {
 
-    let clubIdParam = req.params.clubid;
+    let clubId = req.params.clubid;
 
     try {
 
-        const eventResults = await Event.find({ clubId: new ObjectId(clubIdParam) }).limit(30);
-        res.json(eventResults);
-        return;
+        const eventResults = await Event.find({ clubId: clubId });
+        if(!eventResults.length) return res.status(400).send({status: false, message: "No events found for the club"});
+        return res.status(200).send({status: true, message: "succes", data: eventResults});
+        
 
     } catch (err) {
 
-        res.status(400).send({ message: "Invalid request - were not able to retreive event information from the given club"});
-        return;
+        return res.status(500).send({ message: "Invalid request - were not able to retreive event information from the given club"});
+        
     }
 });
 
