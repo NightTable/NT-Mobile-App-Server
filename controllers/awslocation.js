@@ -10,7 +10,6 @@ const locationClient = new AWS.LocationService({apiVersion: '2020-11-19'});
 // Geocode an address
 const getCoordinates = (address) => {
     address = '1600 Amphitheatre Parkway, Mountain View, CA 94043, United States';
-
     locationClient.geocode({Address: address}, (err, data) => {
     if (err) console.log(err, err.stack);
     else console.log(data);

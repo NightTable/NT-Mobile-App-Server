@@ -67,7 +67,7 @@ const clubSchema = new Schema({
       },
     },
   ],
-});
+},{timestamps:true});
 
 // clubSchema.index({ name: 1, userId: 1 }, { unique: true });
 

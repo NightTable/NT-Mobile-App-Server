@@ -12,36 +12,30 @@ const Schema = mongoose.Schema;
 const representativeSchema = new Schema({
     firstName: {
         type: String,
-        required: true
+        required: [true, "firstName is required"]
     },
     lastName: {
         type: String,
-        required: true,
+        required: [true, "lastName is required"],
     },
     email: {
         type: String,
-        required: true
+        required: [true, "email is required"]
     },
     phoneNumber: {
         type: String,
-        required: true
+        required: [true, "phoneNumber is required"]    
     },
-    // password: {
-    //     type: String,
-    //     required: true
-    // }, how do we handle representative login then
     username: {
         type: String,
-        required: true
+        required: [true, "username is required"]    
     },
-    // isVerified: {
-    //     type: Boolean,
-    //     required: true
-    // }, not there in schema
-    clubId:[{
-        type: Schema.Types.ObjectId,
-        ref: 'Club',
-        required: true
+    clubId: [{
+        club:{
+            type: Schema.Types.ObjectId,
+            ref: 'Club',
+            required: [true, "clubId is required"]
+        }
     }],
     role: {
         type: String,
