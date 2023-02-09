@@ -69,7 +69,11 @@ const representativeSchema = new Schema({
     representativePrivileges:{
         type: Boolean,
         required: true,
+    },
+    isDeleted: {
+        type:Boolean,
+        default: false
     }
-});
+},{timestamps:true});
 
 module.exports = mongoose.model('Representative', representativeSchema);

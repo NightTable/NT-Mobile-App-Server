@@ -67,6 +67,10 @@ const clubSchema = new Schema({
       },
     },
   ],
+    isDeleted: {
+        type:Boolean,
+        default: false
+    }
 },{timestamps:true});
 
 // clubSchema.index({ name: 1, userId: 1 }, { unique: true });

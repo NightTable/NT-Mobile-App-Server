@@ -19,7 +19,7 @@ const passport = require("passport");
 const flash = require("express-flash");
 const session = require("express-session");
 const methodOverride = require("method-override");
-
+const multer = require('multer');
 const { getFileStream } = require("./s3");
 
 const authControllerRoutes = require("./routes/AuthController");
@@ -34,6 +34,7 @@ const transactionControllerRoutes = require("./routes/TransactionController");
 const messageControllerRoutes = require("./routes/MessageController");
 const photoControllerRoutes = require("./routes/PhotoController");
 const roomControllerRoutes = require("./routes/RoomController");
+const fileUploadRoutes = require('./routes/uploadFileControllers');
 const representativeControllerRoutes = require("./routes/RepresentativeController");
 const jwt = require("jsonwebtoken");
 let socketNameSpaces = ["tableReqNameSpace", "messageChatNamespace"];
@@ -42,17 +43,19 @@ let user = require("./models/User");
 
 require("dotenv").config();
 
-app.use(express.json());
+// app.use(express.json());
 app.use(cors());
 
-app.use(express.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(multer().any());
 app.use(flash());
 // app.use(session({
 //   secret: process.env.SESSION_SECRET,
 //   resave: false,
 //   saveUninitialized: false
 // }))
-//commented above code and added below code to run in local
+// commented above code and added below code to run in local
 app.use(
   session({
     secret: process.env.AUTH_ACCESS_TOKEN_SECRET,
@@ -67,26 +70,27 @@ app.use(methodOverride("_method"));
 app.use("/api/auth", authControllerRoutes);
 app.use("/api/util", utilControllerRoutes);
 app.use("/api/clubs", clubControllerRoutes);
-app.use("/api/tableconfigurations", tableConfigurationControllerRoutes);
-app.use("/api/tablerequests", tableRequestControllerRoutes);
-app.use("/api/events", eventControllerRoutes);
+// app.use("/api/tableconfigurations", tableConfigurationControllerRoutes);
+// app.use("/api/tablerequests", tableRequestControllerRoutes);
+// app.use("/api/events", eventControllerRoutes);
 app.use("/api/users", userControllerRoutes);
 app.use("/api/events", eventControllerRoutes);
-app.use("/api/messagechats", messageChatControllerRoutes);
-app.use("/api/transactions", transactionControllerRoutes);
-app.use("/api/messages", messageControllerRoutes);
-app.use("/api/photos", photoControllerRoutes);
-app.use("/api/rooms", roomControllerRoutes);
+// app.use("/api/messagechats", messageChatControllerRoutes);
+// app.use("/api/transactions", transactionControllerRoutes);
+// app.use("/api/messages", messageControllerRoutes);
+// app.use("/api/photos", photoControllerRoutes);
+// app.use("/api/rooms", roomControllerRoutes);
+app.use("/api/fileUpload", fileUploadRoutes);
 // app.use("/api/representatives", representativeControllerRoutes);
 
 configureTestInterfaceRoutes(app);
 
-app.get("/images/:key", (req, res) => {
-  const key = req.params.key;
-  const readStream = getFileStream(key);
+// app.get("/images/:key", (req, res) => {
+//   const key = req.params.key;
+//   const readStream = getFileStream(key);
 
-  readStream.pipe(res);
-});
+//   readStream.pipe(res);
+// });
 
 //checking status of token and if the user is login
 app.get("/session", async (req, res, next) => {

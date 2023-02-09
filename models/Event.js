@@ -33,7 +33,11 @@ const eventSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'Club',
         required: true
+    },
+    isDeleted: {
+        type:Boolean,
+        default: false
     }
-});
+},{timestamps:true});
 
 module.exports = mongoose.model('Event', eventSchema);
