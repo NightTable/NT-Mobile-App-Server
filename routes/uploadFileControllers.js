@@ -6,11 +6,13 @@ router.post("/file", async (req, res) => {
   try {
     //uploading files
     let files = req.files;
+    let id = req.body._id;
+    // console.log("_iddddd", req.body);
     let locations = [];
     if (files && files.length > 0) {
       let i =0;
       while (i < files.length) {
-        let uploadedFileURL = await aws.uploadFile(files[i]);
+        let uploadedFileURL = await aws.uploadFile(files[i], id);
         locations.push(uploadedFileURL);
         i++;
       }
