@@ -81,7 +81,7 @@ app.use("/api/events", eventControllerRoutes);
 // app.use("/api/photos", photoControllerRoutes);
 // app.use("/api/rooms", roomControllerRoutes);
 app.use("/api/fileUpload", fileUploadRoutes);
-// app.use("/api/representatives", representativeControllerRoutes);
+app.use("/api/representatives", representativeControllerRoutes);
 
 configureTestInterfaceRoutes(app);
 

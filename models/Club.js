@@ -12,20 +12,21 @@ const clubSchema = new Schema({
   instaHandle: {
     type: String,
     required: [true, "insta handle is required"],
+    unique: true
   },
   phoneNumber: {
     type: String,
     required: [true, "phone number is required"],
     unique: [true, "phone number already exists!"]
   },
-  address: {
-    line1: String,
+  Address: {
+    Address: String,
     City: {
       type: String,
       required: [true, "city is required in address"],
     },
-    state: String,
-    country: {
+    State: String,
+    Country: {
       type: String,
       required: [true, "country is required in address"],
     },
@@ -38,11 +39,7 @@ const clubSchema = new Schema({
   stripeAccountNumber: {
     type: String,
     required: [true, "stripe account number is required"],
-  },
-  representativeId: {
-    type: Schema.Types.ObjectId,
-    ref: "Representative",
-    //   required: true
+    unique:true
   },
   ownedBy: {
     type: String,

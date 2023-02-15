@@ -13,56 +13,34 @@ const representativeSchema = new Schema({
     },
     email: {
         type: String,
-        required: [true, "email is required"]
+        required: [true, "email is required"],
+        unique:[true, "email is unique"] 
     },
     phoneNumber: {
         type: String,
-        required: [true, "phoneNumber is required"]    
+        required: [true, "phoneNumber is required"],
+        unique:[true, "phone Number is unique"]   
     },
     username: {
         type: String,
-        required: [true, "username is required"]    
+        required: [true, "username is required"],
+        unique:[true, "username is unique"]    
     },
-    clubId: [{
-        club:{
-            type: Schema.Types.ObjectId,
-            ref: 'Club',
-            required: [true, "clubId is required"]
-        }
-    }],
     role: {
         type: String,
         required: true,
         enum: ["staff", "management", "host", "promoter", "godfather"]
     },
-    tableConfigPrivilege:{
-        type: Boolean,
-        required: true,
-    },
-    eventPrivileges:{
-        type: Boolean,
-        required: true,
-    },
-    reservationManagementPrivileges:{
-        type: Boolean,
-        required: true,
-    },
-    mobileAppTableMinimumPrivileges:{
-        type: Boolean,
-        required: true,
-    },
-    menuItemPrivileges:{
-        type: Boolean,
-        required: true,
-    },
-    clubPrivileges:{
-        type: Boolean,
-        required: true,
-    },
-    representativePrivileges:{
-        type: Boolean,
-        required: true,
-    },
+    clubPrivileges:[{
+        club:{
+            type: Schema.Types.ObjectId,
+            ref: 'Club',
+        },
+        privileges:{
+            type: Schema.Types.ObjectId,
+            ref: 'Privilege',
+        }
+    }],
     isDeleted: {
         type:Boolean,
         default: false
@@ -70,3 +48,9 @@ const representativeSchema = new Schema({
 },{timestamps:true});
 
 module.exports = mongoose.model('Representative', representativeSchema);
+
+// populate the schema using following example
+// SchemaC.findOne().populate('references.reference1 references.reference2').exec(function (err, schemaC) {
+//     console.log(schemaC.references.reference1.name);
+//     console.log(schemaC.references.reference2.name);
+//   });
