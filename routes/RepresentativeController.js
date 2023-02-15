@@ -78,26 +78,67 @@ router.put("/updateRepresentative", updateRespresentativeFunction);
 
 //get representative details based on representative ID
 router.get("/representative/:id", async (req, res) => {
-    try{
-        let representative = await Representative.findOne({_id:req.params.id, isDeleted:false}).populate('clubPrivileges.club clubPrivileges.privileges');
-        if(!representative) return res.status(404).send({status:false, message:"representative not found"});
-        return res.status(200).send({status:true, message:"representative found", data:representative })
-    }catch(error){
-        return res.status(500).send({ status: false, message: error });
-    }
+  try {
+    let representative = await Representative.findOne({
+      _id: req.params.id,
+      isDeleted: false,
+    }).populate("clubPrivileges.club clubPrivileges.privileges");
+    if (!representative)
+      return res
+        .status(404)
+        .send({ status: false, message: "representative not found" });
+    return res
+      .status(200)
+      .send({
+        status: true,
+        message: "representative found",
+        data: representative,
+      });
+  } catch (error) {
+    return res.status(500).send({ status: false, message: error });
+  }
 });
-
 
 //get all the representatives details based on representative ID
 router.get("/representative", async (req, res) => {
-    try{
-        let representatives = await Representative.find({isDeleted:false}).populate('clubPrivileges.club clubPrivileges.privileges');
-        if(!representatives.length) return res.status(404).send({status:false, message:"representatives not found"});
-        return res.status(200).send({status:true, message:"representatives found", data:representatives })
-    }catch(error){
-        return res.status(500).send({ status: false, message: error });
-    }
+  try {
+    let representatives = await Representative.find({
+      isDeleted: false,
+    }).populate("clubPrivileges.club clubPrivileges.privileges");
+    if (!representatives.length)
+      return res
+        .status(404)
+        .send({ status: false, message: "representatives not found" });
+    return res
+      .status(200)
+      .send({
+        status: true,
+        message: "representatives found",
+        data: representatives,
+      });
+  } catch (error) {
+    return res.status(500).send({ status: false, message: error });
+  }
 });
 
+//delete a representativee based on id
+router.delete("/representative/:id", async (req, res) => {
+  try {
+    let representative = await Representative.findOneAndUpdate(
+      { _id: req.params.id, isDeleted: false },
+      { isDeleted: true },
+      { new: true }
+    );
+    if (!representative)
+      return res
+        .status(404)
+        .send({ status: false, message: "representative not found" });
+    return res
+      .status(200)
+      .send({ status: true, message: "representative deleted" });
+  } catch (error) {
+    return res.status(500).send({ status: false, message: error });
+  }
+});
 
 module.exports = router;
