@@ -12,6 +12,7 @@ const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const client = require("twilio")(accountSid, authToken);
 const otpModel = require("../models/Otp");
+let representativeModel = require("../models/Representative");
 
 const flash = require("express-flash");
 const session = require("express-session");
@@ -19,15 +20,13 @@ const methodOverride = require("method-override");
 const { ObjectId } = require("mongodb");
 let Country = require("country-state-city").Country;
 let axios = require("axios");
-const AWS = require('aws-sdk');
+const AWS = require("aws-sdk");
 AWS.config.update({
   accessKeyId: "AKIA3VH5X5YSX3KUF4DS ",
   secretAccessKey: "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",
   region: "us-east-2",
 });
-const sns = new AWS.SNS({region: 'us-east-2'});
-
-
+const sns = new AWS.SNS({ region: "us-east-2" });
 
 require("dotenv").config();
 
@@ -50,8 +49,8 @@ const checkToken = async (req, res) => {
   token1 = token1.split(" ");
   const token = token1[1];
   let decodedToken = jwt.verify(token, "nightclubapp");
-  if(!decodedToken){
-    return res.status(403).send({status:false, message:'Bad token'});
+  if (!decodedToken) {
+    return res.status(403).send({ status: false, message: "Bad token" });
   }
   req.loggedUser = decodedToken.userId;
 };
@@ -64,29 +63,33 @@ router.post("/generateOTP", async (req, res) => {
     if (!phoneNumberParam) {
       return res.status(400).send({ status: false, message: "bad request" });
     }
-    let numberValidation = await axios.get(`https://phonevalidation.abstractapi.com/v1/?api_key=96832543ded64bbd92d9bb974e2437d8&domain=https://phonevalidation.abstractapi.com/v1/api_key=96832543ded64bbd92d9bb974e2437d8&phone=${phoneNumberParam}`)
+    let numberValidation = await axios.get(
+      `https://phonevalidation.abstractapi.com/v1/?api_key=96832543ded64bbd92d9bb974e2437d8&domain=https://phonevalidation.abstractapi.com/v1/api_key=96832543ded64bbd92d9bb974e2437d8&phone=${phoneNumberParam}`
+    );
     // console.log(numberValidation.data);
-    if(!numberValidation.data.valid){
-      return res.status(400).send({status:false, message: 'invalid Phone number'})
+    if (!numberValidation.data.valid) {
+      return res
+        .status(400)
+        .send({ status: false, message: "invalid Phone number" });
     }
-    
+
     const otp = Math.floor(100000 + Math.random() * 900000);
     let issuedAtTime = Date.now();
 
     let expiryAt = issuedAtTime + 100000; //expiry of 100 seconds change to 300
-  
+
     let otpInstance = {
       otp: otp,
       phoneNumber: phoneNumberParam,
       expiryAt: expiryAt,
     };
+    console.log("otpInstance", otpInstance);
     //saving the OTP in DB
     let otpInDbInstance = await otpModel.findOneAndUpdate(
       { phoneNumber: phoneNumberParam },
       otpInstance,
       { upsert: true, new: true }
     );
-
 
     //trigger message throught aws --- not working yet
     // const params = {
@@ -103,12 +106,12 @@ router.post("/generateOTP", async (req, res) => {
     //   }
     // });
 
-    // triggering a SMS to client mobile using twillio
+    triggering a SMS to client mobile using twillio
     client.messages
       .create({
         body: `OTP is ${otp}`,
-        messagingServiceSid: 'MGc5765f4a412dff397d740dbf25710c27',      
-         to: phoneNumberParam
+        messagingServiceSid: "MGc5765f4a412dff397d740dbf25710c27",
+        to: phoneNumberParam,
       })
       .then((message) => console.log(message.sid))
       .done();
@@ -135,7 +138,7 @@ router.post("/verifyOtp", async (req, res) => {
     let otpFromDb = await otpModel
       .findOne({ phoneNumber: reqPhoneNumber })
       .select({ otp: 1, phoneNumber: 1, _id: 0, expiryAt: 1 });
-
+    if(!otpFromDb) return res.status(400).send({status:false, message: "OTP not found"})
     //need to add if null returned
     let timeTOExpiry = Number(Date.now()) - Number(otpFromDb.expiryAt);
     // console.log(timeTOExpiry , typeof timeTOExpiry);
@@ -145,11 +148,24 @@ router.post("/verifyOtp", async (req, res) => {
     }
     if (otpFromDb.otp === reqOtp) {
       //user is verified and now proceed to check if the user is already existing
-      let user = await User.findOneAndUpdate(
-        { phoneNumber: reqPhoneNumber },
-        { phoneNumber: reqPhoneNumber },
-        { upsert: true, new: true }
-      );
+      //also check if user or representative
+      let user;
+      let secretString;
+      if (req.body.isrepresentative) {
+        user = await representativeModel.findOne({
+          phoneNumber: reqPhoneNumber,
+          isDeleted: false,
+        });
+        secretString = "nightclubappforrepresentative";
+      } else {
+        user = await User.findOneAndUpdate(
+          { phoneNumber: reqPhoneNumber, isDeleted: false },
+          { phoneNumber: reqPhoneNumber },
+          { upsert: true, new: true }
+        );
+        secretString = "nightclubapp";
+      }
+
       if (!user) {
         return res.status(400).send({
           status: false,
@@ -158,20 +174,15 @@ router.post("/verifyOtp", async (req, res) => {
       } else {
         // allow user login and generate a token
         let userId = user._id;
-        let token = jwt.sign({ userId: userId.toString() }, "nightclubapp");
+        let token = jwt.sign({ userId: userId.toString() }, secretString);
         //will add expiry in the later stage of testing...
-        return res
-          .status(200)
-          .send({ status: true, token: token, message: "user logged in!", data: user });
+        return res.status(200).send({
+          status: true,
+          token: token,
+          message: "user logged in!",
+          data: user,
+        });
       }
-      // if(!user){
-      //   return res.redirect("api/auth/register");
-      // }else{
-      //   if(!user.isProfileSetup){
-      //     return res.redirect("api/auth/register");
-      //   }
-      //   return res.redirect("api/auth/successful/login");
-      // }
     }
     return res
       .status(403)

@@ -19,7 +19,7 @@ const passport = require("passport");
 const flash = require("express-flash");
 const session = require("express-session");
 const methodOverride = require("method-override");
-const multer = require('multer');
+const multer = require("multer");
 const { getFileStream } = require("./s3");
 
 const authControllerRoutes = require("./routes/AuthController");
@@ -34,11 +34,12 @@ const transactionControllerRoutes = require("./routes/TransactionController");
 const messageControllerRoutes = require("./routes/MessageController");
 const photoControllerRoutes = require("./routes/PhotoController");
 const roomControllerRoutes = require("./routes/RoomController");
-const fileUploadRoutes = require('./routes/uploadFileControllers');
+const fileUploadRoutes = require("./routes/uploadFileControllers");
 const representativeControllerRoutes = require("./routes/RepresentativeController");
 const jwt = require("jsonwebtoken");
 let socketNameSpaces = ["tableReqNameSpace", "messageChatNamespace"];
-let user = require("./models/User");
+let userModel = require("./models/User");
+let representativeModel = require("./models/Representative");
 // comment to trigger build
 
 require("dotenv").config();
@@ -102,13 +103,26 @@ app.get("/session", async (req, res, next) => {
         .send({ status: false, message: "token must be present" });
     token1 = token1.split(" ");
     const token = token1[1];
-    let decodedToken = jwt.verify(token, "nightclubapp");
+    let secretString = "nightclubapp";
+    if (req.body.isRepresentative) {
+      secretString = "nightclubappforrepresentative";
+    }
+    let decodedToken = jwt.verify(token, secretString);
     if (!decodedToken) {
       return res.status(403).send({ status: false, message: "Bad token" });
     }
+    let id = decodedToken.userId;
+    let user;
+    if (req.body.isRepresentative) {
+      user = await representativeModel.findOne({ _id: id }).populate("clubPrivileges.club clubPrivileges.privileges").lean();
+      if(!user) return res.status(404).send({status:false, message: "not found."})
+    } else {
+      user = await userModel.findOne({ _id: id }).lean();
+      if(!user) return res.status(404).send({status:false, message: "not found."})
+    }
 
     // let loggedInUser = await user.findById(decodedToken.userId);
-    return res.status(200).send({ status: true, message: "success" });
+    return res.status(200).send({ status: true, message: "success", loggedInPerson: user });
     // console.log(loggedInUser);
     // req.loggedUser = decodedToken.userId;
   } catch (error) {
