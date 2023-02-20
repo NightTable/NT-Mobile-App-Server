@@ -19,6 +19,15 @@ const methodOverride = require("method-override");
 const { ObjectId } = require("mongodb");
 let Country = require("country-state-city").Country;
 let axios = require("axios");
+const AWS = require('aws-sdk');
+AWS.config.update({
+  accessKeyId: "AKIA3VH5X5YSX3KUF4DS ",
+  secretAccessKey: "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",
+  region: "us-east-2",
+});
+const sns = new AWS.SNS({region: 'us-east-2'});
+
+
 
 require("dotenv").config();
 
@@ -61,13 +70,11 @@ router.post("/generateOTP", async (req, res) => {
       return res.status(400).send({status:false, message: 'invalid Phone number'})
     }
     
-    // console.log(phoneNumberParam);
-    // const otp = otpGenerator.generate(6, { alphabets: false, upperCase: false, specialChars: false, digits:true });
     const otp = Math.floor(100000 + Math.random() * 900000);
     let issuedAtTime = Date.now();
-    // console.log(issuedAtTime);
+
     let expiryAt = issuedAtTime + 100000; //expiry of 100 seconds change to 300
-    // console.log(expiryAt);
+  
     let otpInstance = {
       otp: otp,
       phoneNumber: phoneNumberParam,
@@ -80,12 +87,28 @@ router.post("/generateOTP", async (req, res) => {
       { upsert: true, new: true }
     );
 
-    //triggering a SMS to client mobile using twillio
+
+    //trigger message throught aws --- not working yet
+    // const params = {
+    //   Message: `Your OTP is ${otp}`, // The message to send
+    //   PhoneNumber: phoneNumberParam // The phone number to send the message to
+    // };
+    // console.log("====>>>>>", phoneNumberParam, "=====>>>>>", otp);
+
+    // sns.publish(params, (err, data) => {
+    //   if (err) {
+    //     console.log(err); // Handle the error
+    //   } else {
+    //     console.log(data); // Handle the successful response
+    //   }
+    // });
+
+    // triggering a SMS to client mobile using twillio
     client.messages
       .create({
         body: `OTP is ${otp}`,
-        messagingServiceSid: "MG2c5b4affdda0a7baa92488fde7e88067",
-        to: "+919953277050",
+        messagingServiceSid: 'MGc5765f4a412dff397d740dbf25710c27',      
+         to: phoneNumberParam
       })
       .then((message) => console.log(message.sid))
       .done();
