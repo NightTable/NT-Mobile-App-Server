@@ -31,13 +31,18 @@ const sns = new AWS.SNS({ region: "us-east-2" });
 require("dotenv").config();
 
 router.get("/getCountryCodes", async (req, res) => {
-  let countries = Country.getAllCountries().map((ele) => {
-    return {
-      name: ele.name,
-      phoneNumberCode: ele.phonecode,
-    };
-  });
-  return res.status(200).send({ status: true, data: countries });
+  try {
+    let countries = Country.getAllCountries().map((ele) => {
+      return {
+        name: ele.name,
+        phoneNumberCode: ele.phonecode,
+        isoCode: ele.isoCode,
+      };
+    });
+    return res.status(200).send({ status: true, data: countries });
+  } catch (error) {
+    return res.status(500).send({ status: false, message: error.message });
+  }
 });
 
 const checkToken = async (req, res) => {
@@ -106,7 +111,7 @@ router.post("/generateOTP", async (req, res) => {
     //   }
     // });
 
-    triggering a SMS to client mobile using twillio
+    // triggering a SMS to client mobile using twillio
     client.messages
       .create({
         body: `OTP is ${otp}`,
@@ -138,7 +143,8 @@ router.post("/verifyOtp", async (req, res) => {
     let otpFromDb = await otpModel
       .findOne({ phoneNumber: reqPhoneNumber })
       .select({ otp: 1, phoneNumber: 1, _id: 0, expiryAt: 1 });
-    if(!otpFromDb) return res.status(400).send({status:false, message: "OTP not found"})
+    if (!otpFromDb)
+      return res.status(400).send({ status: false, message: "OTP not found" });
     //need to add if null returned
     let timeTOExpiry = Number(Date.now()) - Number(otpFromDb.expiryAt);
     // console.log(timeTOExpiry , typeof timeTOExpiry);
