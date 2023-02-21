@@ -18,7 +18,7 @@ const flash = require("express-flash");
 const session = require("express-session");
 const methodOverride = require("method-override");
 const { ObjectId } = require("mongodb");
-let Country = require("country-state-city").Country;
+const { Country, State, City } = require("country-state-city");
 let axios = require("axios");
 const AWS = require("aws-sdk");
 AWS.config.update({
@@ -44,6 +44,43 @@ router.get("/getCountryCodes", async (req, res) => {
     return res.status(500).send({ status: false, message: error.message });
   }
 });
+
+
+router.post('/getStatesOfCountry', async(req,res)=>{
+  try {
+    const {countryCode} = req.body;
+
+      let States = State.getStatesOfCountry(countryCode);
+      
+      if(States && States.length > 0)
+      {
+          return res.json({status:200, msg:'success',data : States});
+      }
+      else
+      {
+          return res.json({status:400, msg:'no data found'});
+      }
+  } catch (error) {
+      return res.json({status : 500 , msg:'internal server error'});
+  }
+})
+
+router.post('/citiesOfStates', async(req,res)=> {
+  try {
+    const {countryCode, stateCode} = req.body;
+    let Cities = City.getCitiesOfState(countryCode, stateCode);
+    if(Cities && Cities.length > 0)
+    {
+        return res.json({status:200, msg:'success',data : Cities});
+    }
+    else
+    {
+        return res.json({status:400, msg:'failed'});
+    }
+} catch (error) {
+    return res.json({status : 500 , msg:'internal server error'});
+}
+})
 
 const checkToken = async (req, res) => {
   let token1 = req.header("Authorization");
