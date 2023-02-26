@@ -9,7 +9,7 @@ router.get("/club/:clubid", async (req, res) => {
     const eventResults = await Event.find({ clubId: clubId, isDeleted: false });
     if (!eventResults.length)
       return res
-        .status(400)
+        .status(404)
         .send({ status: false, message: "No events found for the club" });
     return res
       .status(200)
@@ -32,7 +32,7 @@ router.get("/club/:clubId/:eventId", async (req, res) => {
     }).lean();
     if (!event)
       return res
-        .status(400)
+        .status(404)
         .send({ status: false, message: "event not found" });
 
     return res
@@ -70,7 +70,7 @@ router.put("club/:clubId/:eventId", async (req, res) => {
       { new: true }
     );
     if (!updatedClub)
-      return res.status(400).send({ status: false, message: "not found" });
+      return res.status(404).send({ status: false, message: "not found" });
     return res.status(200).send({
       status: true,
       message: "successfully updated",
@@ -90,7 +90,7 @@ router.delete("club/:clubId/:eventId", async (req, res) => {
       { new: true }
     );
     if (!deletedClub)
-      return res.status(400).send({ status: false, message: "not found" });
+      return res.status(404).send({ status: false, message: "not found" });
     return res
       .status(200)
       .send({ status: true, messages: "successfully deleted" });

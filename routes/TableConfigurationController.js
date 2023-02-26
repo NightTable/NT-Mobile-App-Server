@@ -1,137 +1,82 @@
-const express = require('express');
+const express = require("express");
 // const { ObjectId } = require('mongodb');
 const router = express.Router();
-const TableConfiguration = require('../models/TableConfiguration');
+const TableConfiguration = require("../models/TableConfiguration");
 
-
-router.delete('/:tableconfigid', async (req, res) => {
-
-    let tableConfigIdParam = req.params.tableconfigid;
-
-    try {
-
-        await TableConfiguration.deleteOne({ _id: new ObjectId(tableConfigIdParam)});
-
-        res.json({ message: "The table configuration was successfully deleted"});
-        return;
-
-    } catch (err) {
-
-        res.status(400).send({ message: "Invalid request - We were not able to delete the table configuration"});
-        return;
-    }
+router.get("/club/:clubId", async (req, res) => {
+  try {
+    let { clubId } = req.params;
+    let clubs = await TableConfiguration.find({
+      clubId: clubId,
+      isDeleted: false,
+    }).lean();
+    if (!clubs.length)
+      return res.status(404).send({ status: false, message: "no club found" });
+    return res
+      .status(200)
+      .send({ status: true, message: "success", data: clubs });
+  } catch (error) {
+    return res.status(500).send({ status: false, message: error.message });
+  }
 });
 
-
-
-router.put('/:tableconfigid', async (req, res) => {
-
-
-    let tableConfigIdParam = req.params.tableconfigid;
-
-    let retrievedTableConfigObject = null;
-
-    let typeParam = null;
-    let minPriceParam = null;
-    let recommendedCapacityParam = null;
-
-    try {
-
-        typeParam = req.body.type;
-        minPriceParam = parseInt(req.body.minPrice);
-        recommendedCapacityParam = parseInt(req.body.recommendedCapacity);
-        const retrievedTableConfigObjectClubIdTempObject = await TableConfiguration.findById(new ObjectId(tableConfigIdParam));
-        const retrievedTableConfigObjectClubId = retrievedTableConfigObjectClubIdTempObject.clubId;
-        retrievedTableConfigObject = await TableConfiguration.findOneAndUpdate(
-            { _id: new ObjectId(tableConfigIdParam) }, 
-            {
-                type: typeParam,
-                minPrice: minPriceParam,
-                recommendedCapacity: recommendedCapacityParam,
-                clubId: retrievedTableConfigObjectClubId,
-            });
-
-        res.json({ message: "The table configuration was successfully updated"});
-        return;
-
-
-    } catch (err) {
-        res.status(400).send({ message: "Invalid request -- the table configuration was not able to be updated"});
-        return;
-
-    }
-    
+router.post("club/:clubId", async (req, res) => {
+  try {
+    let { clubId } = req.params;
+    let tableConfiguration = req.body;
+    tableConfiguration.clubId = clubId;
+    let table = await TableConfiguration.create(tableConfiguration);
+    return res
+      .status(201)
+      .send({ status: true, message: "success", data: table });
+  } catch (error) {
+    return res.status(500).send({ status: false, message: error.message });
+  }
 });
 
-
-router.get('/club/:clubid', async (req, res) => {
-    let cid = 0;
-    try {
-        cid = req.params.clubid;
-    } catch (err) {
-        res.status(400).json({ message: "Invalid club id"}); //unexpected token c at position 3
-        return;
-    }
-
-    if (!(ObjectId.isValid(cid))) {
-        res.status(400).json({ message: "Invalid club id values for endpoint"});
-        return;
-    }
-    let config = []
-    try {
-        config = await TableConfiguration.find({clubId: new ObjectId(req.params.clubid)})
-        if (config.length != 0){
-            res.json(config)
-            return;
-        }
-        else{
-            res.status(200).json({ message: "Configuration doesn't exist"});
-            return;
-        }
-
-    } catch (err) {
-        res.status(200).json({ message: "Configuration doesn't exist"});
-        return;
-    }
-
+router.put("/:tableconfigId", async (req, res) => {
+  try {
+    let { tableConfigId } = req.params;
+    let updatedTableConfigData = req.body;
+    let updatedTableConfig = await TableConfiguration.findOneAndUpdate(
+      { _id: tableConfigId, isDeleted: false },
+      updatedTableConfigData,
+      { new: true }
+    );
+    if (!updatedTableConfig)
+      return res
+        .status(404)
+        .send({ status: false, message: "table not found" });
+    return res
+      .status(200)
+      .send({ status: true, message: "success", data: updatedTableConfig });
+  } catch (error) {
+    return res.status(500).send({ status: false, message: error.message });
+  }
 });
 
+router.delete("/:tableconfigId", async (req, res) => {
+  try {
+    let tableConfigId = req.params.tableconfigId;
 
-
-router.post('/club/:clubid', async (req, res) => {
-
-    let clubIdParam = req.params.clubid;
-    let typeParam = null;
-    let minPriceParam = null;
-    let recommendedCapacityParam = null;
-    let availabilityCountParam = null;
-
-    try {
-
-        typeParam = req.body.type;
-        minPriceParam = parseFloat(req.body.minPrice);
-        recommendedCapacityParam = parseInt(req.body.recommendedCapacity);
-        availabilityCountParam = parseInt(req.body.availabilityCount);
-
-        let newTableConfiguration = null;
-
-        newTableConfiguration = await TableConfiguration.create({
-            type: typeParam,
-            minPrice: minPriceParam,
-            recommendedCapacity: recommendedCapacityParam,
-            availabilityCount: availabilityCountParam,
-            clubId: clubIdParam
-        });
-
-        await newTableConfiguration.save();
-        res.json({ message: "The new table configuration was successfully added"});
-        return;
-
-    } catch (err) {
-
-        res.status(400).send({ message: `Invalid request -- The specific configuration was not able to be added`});
-         return;
-    }
+    let deletedTable = await TableConfiguration.findOneAndUpdate(
+      {
+        _id: tableConfigId,
+        isDeleted: false,
+      },
+      { isDeleted: true },
+      { new: true }
+    );
+    if (!deletedTable)
+      return res.status(404).send({ status: false, message: "not found" });
+    return res
+      .status(200)
+      .send({ status: true, message: "successfully deleted" });
+  } catch (error) {
+    return res.status(500).send({
+      message: error.message,
+    });
+  }
 });
 
 module.exports = router;

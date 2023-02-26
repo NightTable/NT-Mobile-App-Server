@@ -5,28 +5,28 @@ const Schema = mongoose.Schema;
 const eventSchema = new Schema({
     name: {
       type: String,
-      required: true
+      required: [true, "name of event is required"],
     },
     picture: {
         type: String,
-        required: true
+        required: [true, "picture is required"],
     },
     eventDate: {
         type: Date,
-        required: true
+        required: [true, "eventDate is required"],
     },
     eventTime: {
         type: String,
-        required: true
+        required: [true, "eventTime is required"],
     },
     ticketLink: {
         type: String,
-        required: true,
+        required: [true, "ticketLink is required"],
     },
     clubId: {
         type: Schema.Types.ObjectId,
         ref: 'Club',
-        required: true
+        required: [true, "clubId is required"],
     },
     isDeleted: {
         type:Boolean,
