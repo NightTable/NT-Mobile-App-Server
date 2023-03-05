@@ -24,6 +24,7 @@ const { getFileStream } = require("./s3");
 
 const authControllerRoutes = require("./routes/AuthController");
 const eventControllerRoutes = require("./routes/EventController");
+const menuControllerRoutes = require ("./routes/MenuController");
 const utilControllerRoutes = require("./controllers/UtilController");
 const clubControllerRoutes = require("./routes/ClubController");
 const tableConfigurationControllerRoutes = require("./routes/TableConfigurationController");
@@ -74,6 +75,7 @@ app.use("/api/clubs", clubControllerRoutes);
 app.use("/api/tableconfigurations", tableConfigurationControllerRoutes);
 // app.use("/api/tablerequests", tableRequestControllerRoutes);
 // app.use("/api/events", eventControllerRoutes);
+app.use("/api/menu", menuControllerRoutes)
 app.use("/api/users", userControllerRoutes);
 app.use("/api/events", eventControllerRoutes);
 // app.use("/api/messagechats", messageChatControllerRoutes);
