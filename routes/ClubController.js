@@ -167,7 +167,7 @@ router.get("/clubs", async (req, res) => {
 router.get("/:clubid", async (req, res) => {
   try {
     let clubId = req.params.clubid;
-    let retrievedClubObject = await Club.findOne({_id:clubId, isDeleted: false});
+    let retrievedClubObject = await Club.findOne({_id:clubId, isDeleted: false}).populate('menu');
     if (!retrievedClubObject) {
       return res
         .status(404)
