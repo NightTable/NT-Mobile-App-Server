@@ -8,20 +8,22 @@ const menuSchema = new Schema(
       {
         category: {
           name: String,
-          items: {
-            name: {
-              type: String,
-              required: [true, "name of item is required"],
+          items: [
+            {
+              name: {
+                type: String,
+                required: [true, "name of item is required"],
+              },
+              price: {
+                type: Number,
+                required: [true, "price of item is required"],
+              },
+              quantity: {
+                type: Number,
+                required: [true, "quantity of item is required"],
+              },
             },
-            price: {
-              type: Number,
-              required: [true, "price of item is required"],
-            },
-            quantity: {
-              type: Number,
-              required: [true, "quantity of item is required"],
-            },
-          },
+          ],
         },
       },
     ],

@@ -13,18 +13,18 @@ router.post('/createMenu', async(req,res) =>{
     }
 })
 
-router.get('/menu/:menuId', async(req,res)=>{
+router.get('/:menuId', async(req,res)=>{
     try{
         let {menuId} = req.params;
         let menuFromDb = await menu.find({_id:menuId, isDeleted: false});
         if(!(menuFromDb.length)) return res.status(404).send({status:false, message:"menu not found"})
-        return res.status(200).send({status:true, message:'created successfully', data: menuFromDb})
+        return res.status(200).send({status:true, message:'menu found', data: menuFromDb})
     }catch(error){
         return res.status(500).send({status:false, message: error.message})
     }
 })
 
-router.patch('/menu/:menuId', async(req,res)=>{
+router.put('/:menuId', async(req,res)=>{
     try{
         let {menuId} = req.params;
         let updatedMenu = req.body;
@@ -36,7 +36,7 @@ router.patch('/menu/:menuId', async(req,res)=>{
     }
 })
 
-router.delete('/menu/:menuId', async(req,res)=>{
+router.delete('/:menuId', async(req,res)=>{
     try{
         let {menuId} = req.params;
         let menuDeleted = await menu.findOneAndUpdate({_id:menuId, isDeleted: false}, {isDeleted:true}, {new:true});
