@@ -38,7 +38,7 @@ const clubSchema = new Schema(
     },
     photos: [String],
     floorPlan: {
-      type: String,
+      type: [String],
     },
     menu: {
       type: Schema.Types.ObjectId,
