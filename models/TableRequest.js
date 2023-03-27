@@ -1,8 +1,4 @@
-// All information, source code contained in this document 
-// is the property of StrynDev Solutions, LLC. It must not 
-// be transmitted to others without the written consent of 
-// StrynDev Solutions. It must be returned to StrynDev Solutions 
-// when its authorized use is terminated.
+  
 
 const mongoose = require('mongoose');
 
@@ -18,9 +14,33 @@ const tableRequestSchema = new Schema({
         ref: 'TableConfiguration',
         required: true
     },
+    customMinimum: {
+        type:Number,
+        required: true
+    },
+    // eventId:{
+    //     type: Schema.Types.ObjectId,
+    //     ref: 'Event',
+    //     required: true
+    // },
+    joiningFee: {
+        type: Number,
+        required: true
+    },
+    organizerUserId:{
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    promoterId:{
+        type: Schema.Types.ObjectId,
+        ref: 'Representative',
+        required: true
+    },
     costSplitType: {
         type: String,
-        required: true
+        required: true,
+        enum:['pnsl', 'snpl']   
     },
     taken: {
         type: Number,
@@ -29,6 +49,9 @@ const tableRequestSchema = new Schema({
     available: {
         type: Number,
         required: true
+    },
+    eta:{
+        type: Date
     },
     mfRatio: {
         type: Number,
@@ -58,11 +81,11 @@ const tableRequestSchema = new Schema({
         type: Date,
         required: false
     },   
-    clubId: { 
-        type: Schema.Types.ObjectId,
-        ref: 'Club',
-        required: true
-    }
+    // clubId: { 
+    //     type: Schema.Types.ObjectId,
+    //     ref: 'Club',
+    //     required: true
+    // }
 });
 
 module.exports = mongoose.model('TableRequest', tableRequestSchema);
