@@ -1,4 +1,5 @@
-const express = require("express");
+const express = require('express');
+const Region = require('../models/Region');
 const router = express.Router();
 const Club = require("../models/Club");
 // const User = require("../models/User");
