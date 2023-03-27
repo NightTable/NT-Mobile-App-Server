@@ -27,10 +27,10 @@ const menuSchema = new Schema(
         },
       },
     ],
-    // clubId: {
-    //   type: Schema.Types.ObjectId,
-    //   ref: "Club",
-    // },
+    clubId: {
+      type: Schema.Types.ObjectId,
+      ref: "Club",
+    },
     isDeleted: {
       type: Boolean,
       default: false,

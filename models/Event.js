@@ -13,7 +13,7 @@ const eventSchema = new Schema({
     },
     eventDate: {
         type: Date,
-        required: [true, "eventDate is required"],
+        // required: [true, "eventDate is required"],
     },
     eventTime: {
         type: String,
