@@ -19,12 +19,12 @@ router.post("/createMenu", async (req, res) => {
 router.get("/:menuId", async (req, res) => {
   try {
     let { menuId } = req.params;
-    let menuFromDb = await menu.findOne({ _id: menuId, isDeleted: false }).select({_id:0, menu:1, clubId:1})//.populate('clubId').lean();;
+    let menuFromDb = await menu.findOne({ _id: menuId, isDeleted: false }).select({_id:0, menu:1})//.populate('clubId').lean();;
     if (!menuFromDb)
       return res.status(404).send({ status: false, message: "menu not found" });
     return res
       .status(200)
-      .send({ status: true, message: "menu found", data: menuFromDb });
+      .send({ status: true, message: "menu found", data: menuFromDb.menu });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
@@ -33,12 +33,12 @@ router.get("/:menuId", async (req, res) => {
 router.get("/club/:clubId", async (req, res) => {
   try {
     let { clubId } = req.params;
-    let menuForClub = await menu.findOne({ clubId: clubId, isDeleted: false }).select({_id:0, menu:1, clubId:1})//.populate('clubId').lean();
+    let menuForClub = await menu.findOne({ clubId: clubId, isDeleted: false }).select({_id:0, menu:1})//.populate('clubId').lean();
     if (!menuForClub)
       return res.status(404).send({ status: false, message: "menu not found" });
     return res
       .status(200)
-      .send({ status: true, message: "menu found", data: menuForClub });
+      .send({ status: true, message: "menu found", data: menuForClub.menu });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
