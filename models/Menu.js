@@ -7,13 +7,12 @@ const menuSchema = new Schema(
     clubId: {
       type: Schema.Types.ObjectId,
       ref: "Club",
-      unique: [true, "one club can have only one menu"]
     },
     isDeleted: {
       type: Boolean,
       default: false,
     },
-    menu: [{
+    menuCatgeory: {
       category: String,
       items: [
         {
@@ -31,7 +30,7 @@ const menuSchema = new Schema(
           },
         },
       ],
-    }]
+    }
     
   },
   { timestamps: true }
