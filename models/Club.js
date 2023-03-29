@@ -40,10 +40,10 @@ const clubSchema = new Schema(
     floorPlan: {
       type: [String],
     },
-    menu: {
-      type: Schema.Types.ObjectId,
-      ref: "Menu",
-    },
+    // menu: {
+    //   type: Schema.Types.ObjectId,
+    //   ref: "Menu",
+    // },
     stripeAccountNumber: {
       type: String,
       required: [true, "stripe account number is required"],

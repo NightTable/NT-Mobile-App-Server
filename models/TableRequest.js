@@ -85,7 +85,11 @@ const tableRequestSchema = new Schema({
     //     type: Schema.Types.ObjectId,
     //     ref: 'Club',
     //     required: true
-    // }
+    // },
+    isDeleted:{
+        type: Boolean,
+        default: false
+    }
 });
 
 module.exports = mongoose.model('TableRequest', tableRequestSchema);
