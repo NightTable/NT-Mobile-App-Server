@@ -18,11 +18,11 @@ const tableRequestSchema = new Schema({
         type:Number,
         required: true
     },
-    // eventId:{
-    //     type: Schema.Types.ObjectId,
-    //     ref: 'Event',
-    //     required: true
-    // },
+    eventId:{
+        type: Schema.Types.ObjectId,
+        ref: 'Event',
+        required: true
+    },
     joiningFee: {
         type: Number,
         required: true
@@ -81,11 +81,11 @@ const tableRequestSchema = new Schema({
         type: Date,
         required: false
     },   
-    // clubId: { 
-    //     type: Schema.Types.ObjectId,
-    //     ref: 'Club',
-    //     required: true
-    // },
+    clubId: { 
+        type: Schema.Types.ObjectId,
+        ref: 'Club',
+        required: true
+    },
     isDeleted:{
         type: Boolean,
         default: false

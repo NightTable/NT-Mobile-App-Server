@@ -73,7 +73,7 @@ app.use("/api/auth", authControllerRoutes);
 app.use("/api/util", utilControllerRoutes);
 app.use("/api/clubs", clubControllerRoutes);
 app.use("/api/tableconfigurations", tableConfigurationControllerRoutes);
-// app.use("/api/tablerequests", tableRequestControllerRoutes);
+app.use("/api/tablerequests", tableRequestControllerRoutes);
 // app.use("/api/events", eventControllerRoutes);
 app.use("/api/menu", menuControllerRoutes)
 app.use("/api/users", userControllerRoutes);
