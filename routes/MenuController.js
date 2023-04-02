@@ -24,7 +24,7 @@ router.get("/:menuId", async (req, res) => {
       return res.status(404).send({ status: false, message: "menu not found" });
     return res
       .status(200)
-      .send({ status: true, message: "menu found", data: menuFromDb.menu });
+      .send({ status: true, message: "menu found", data: {menu:menuFromDb.menu, _id: menuFromDb._id} });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
@@ -36,7 +36,7 @@ router.get("/club/:clubId", async (req, res) => {
     let menuForClub = await menu.find({ clubId: clubId, isDeleted: false }).select({_id:1, menuCatgeory:1})//.populate('clubId').lean();
     if (!menuForClub.length)
       return res.status(200).send({ status: false, message: "menu not found" , data:menuForClub});
-    let menu1 = menuForClub.map( ele => ele.menuCatgeory)
+    let menu1 = menuForClub.map( ele => ({category:ele.menuCatgeory, _id: ele._id}))
     return res
       .status(200)
       .send({ status: true, message: "menu found", data: menu1 });
