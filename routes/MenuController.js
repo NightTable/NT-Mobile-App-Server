@@ -36,7 +36,14 @@ router.get("/club/:clubId", async (req, res) => {
     let menuForClub = await menu.find({ clubId: clubId, isDeleted: false }).select({_id:1, menuCatgeory:1})//.populate('clubId').lean();
     if (!menuForClub.length)
       return res.status(200).send({ status: false, message: "menu not found" , data:menuForClub});
-    let menu1 = menuForClub.map( ele => ({category:ele.menuCatgeory, _id: ele._id}))
+    let menu1 = menuForClub.map( ele => {
+      console.log(ele);
+      return ({
+        category: ele.menuCatgeory.category,
+        items: ele.menuCatgeory.items,
+        _id:ele._id
+      })
+      })
     return res
       .status(200)
       .send({ status: true, message: "menu found", data: menu1 });
