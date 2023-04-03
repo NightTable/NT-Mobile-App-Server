@@ -28,6 +28,10 @@ const eventSchema = new Schema({
         ref: 'Club',
         required: [true, "clubId is required"],
     },
+    isTableConfigAdded:{
+        type:Boolean,
+        default: false
+    },
     isDeleted: {
         type:Boolean,
         default: false
