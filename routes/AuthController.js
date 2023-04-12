@@ -153,7 +153,7 @@ router.post("/generateOTP", async (req, res) => {
       .create({
         body: `OTP is ${otp}`,
         messagingServiceSid: "MGc5765f4a412dff397d740dbf25710c27",
-        to: phoneNumberParam,
+        to: '+16175300464',
       })
       .then((message) => console.log(message.sid))
       .done();
