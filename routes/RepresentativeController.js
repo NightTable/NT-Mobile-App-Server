@@ -124,7 +124,7 @@ router.get("/club/:clubId", async (req, res) => {
     let representatives = await Representative.find({
       isDeleted: false,
       'clubPrivileges.club': clubId,
-    });
+    }).populate('clubPrivileges.club clubPrivileges.privileges');
     if (!representatives.length)
       return res
         .status(404)
