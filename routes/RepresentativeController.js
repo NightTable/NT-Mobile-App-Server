@@ -87,13 +87,11 @@ router.get("/representative/:id", async (req, res) => {
       return res
         .status(404)
         .send({ status: false, message: "representative not found" });
-    return res
-      .status(200)
-      .send({
-        status: true,
-        message: "representative found",
-        data: representative,
-      });
+    return res.status(200).send({
+      status: true,
+      message: "representative found",
+      data: representative,
+    });
   } catch (error) {
     return res.status(500).send({ status: false, message: error });
   }
@@ -109,13 +107,33 @@ router.get("/representative", async (req, res) => {
       return res
         .status(404)
         .send({ status: false, message: "representatives not found" });
-    return res
-      .status(200)
-      .send({
-        status: true,
-        message: "representatives found",
-        data: representatives,
-      });
+    return res.status(200).send({
+      status: true,
+      message: "representatives found",
+      data: representatives,
+    });
+  } catch (error) {
+    return res.status(500).send({ status: false, message: error });
+  }
+});
+
+//get representative on basis of clubId
+router.get("/club/:clubId", async (req, res) => {
+  try {
+    let clubId = req.params.clubId;
+    let representatives = await Representative.find({
+      isDeleted: false,
+      'clubPrivileges.club': clubId,
+    });
+    if (!representatives.length)
+      return res
+        .status(404)
+        .send({ status: false, message: "representatives not found" });
+    return res.status(200).send({
+      status: true,
+      message: "representatives found",
+      data: representatives,
+    });
   } catch (error) {
     return res.status(500).send({ status: false, message: error });
   }
