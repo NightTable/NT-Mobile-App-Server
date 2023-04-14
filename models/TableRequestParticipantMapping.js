@@ -42,7 +42,7 @@ const tableRequestParticipantMappingSchema = new Schema({
     required: true,
   },
   isCostContributionFinalized: {
-    type: Booelan,
+    type: Boolean,
     required: true,
   },
 },{timestamps: true});
