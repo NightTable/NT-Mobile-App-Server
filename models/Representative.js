@@ -29,7 +29,7 @@ const representativeSchema = new Schema({
     role: {
         type: String,
         required: true,
-        enum: ["staff", "management", "host", "promoter", "godfather"]
+        // enum: ["staff", "management", "host", "promoter", "godfather"]
     },
     clubPrivileges:[{
         club:{
