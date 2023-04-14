@@ -14,6 +14,10 @@ const participantSchema = new Schema({
         type: String,
         required: false,
     },
+    phoneNumber: {
+        type:Number,
+        required: true
+    },
     isExternalUser: {
         type: Boolean,
         required: true
