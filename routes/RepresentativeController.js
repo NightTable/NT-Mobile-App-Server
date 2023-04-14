@@ -86,7 +86,7 @@ router.get("/representative/:id", async (req, res) => {
     if (!representative)
       return res
         .status(200)
-        .send({ status: false, message: "representative not found" });
+        .send({ status: false, message: "representative not found", data: [] });
     return res.status(200).send({
       status: true,
       message: "representative found",
@@ -106,7 +106,7 @@ router.get("/representative", async (req, res) => {
     if (!representatives.length)
       return res
         .status(200)
-        .send({ status: false, message: "representatives not found" });
+        .send({ status: false, message: "representatives not found",data: [] });
     return res.status(200).send({
       status: true,
       message: "representatives found",
@@ -128,7 +128,7 @@ router.get("/club/:clubId", async (req, res) => {
     if (!representatives.length)
       return res
         .status(200)
-        .send({ status: false, message: "representatives not found" });
+        .send({ status: false, message: "representatives not found", data: [] });
     return res.status(200).send({
       status: true,
       message: "representatives found",
