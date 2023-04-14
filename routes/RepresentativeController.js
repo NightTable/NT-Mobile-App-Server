@@ -85,7 +85,7 @@ router.get("/representative/:id", async (req, res) => {
     }).populate("clubPrivileges.club clubPrivileges.privileges");
     if (!representative)
       return res
-        .status(404)
+        .status(200)
         .send({ status: false, message: "representative not found" });
     return res.status(200).send({
       status: true,
@@ -105,7 +105,7 @@ router.get("/representative", async (req, res) => {
     }).populate("clubPrivileges.club clubPrivileges.privileges");
     if (!representatives.length)
       return res
-        .status(404)
+        .status(200)
         .send({ status: false, message: "representatives not found" });
     return res.status(200).send({
       status: true,
@@ -127,7 +127,7 @@ router.get("/club/:clubId", async (req, res) => {
     }).populate('clubPrivileges.club clubPrivileges.privileges');
     if (!representatives.length)
       return res
-        .status(404)
+        .status(200)
         .send({ status: false, message: "representatives not found" });
     return res.status(200).send({
       status: true,
