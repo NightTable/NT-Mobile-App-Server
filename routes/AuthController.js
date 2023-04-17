@@ -149,14 +149,14 @@ router.post("/generateOTP", async (req, res) => {
     // });
 
     // triggering a SMS to client mobile using twillio
-    client.messages
-      .create({
-        body: `OTP is ${otp}`,
-        messagingServiceSid: "MGc5765f4a412dff397d740dbf25710c27",
-        to: '+16175300464',
-      })
-      .then((message) => console.log(message.sid))
-      .done();
+    // client.messages
+    //   .create({
+    //     body: `OTP is ${otp}`,
+    //     messagingServiceSid: "MGc5765f4a412dff397d740dbf25710c27",
+    //     to: '+16175300464',
+    //   })
+    //   .then((message) => console.log(message.sid))
+    //   .done();
 
     return res
       .status(200)
