@@ -31,6 +31,10 @@ const privilegesSchema = new Schema({
         type: Boolean,
         required: true,
     },
+    arrivalConfirmationPrivileges:{
+        type: Boolean,
+        required: true,
+    },
     isDeleted: {
         type:Boolean,
         default: false
