@@ -1,9 +1,3 @@
-// All information, source code contained in this document 
-// is the property of StrynDev Solutions, LLC. It must not 
-// be transmitted to others without the written consent of 
-// StrynDev Solutions. It must be returned to StrynDev Solutions 
-// when its authorized use is terminated.
-
 const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
@@ -11,29 +5,37 @@ const Schema = mongoose.Schema;
 const eventSchema = new Schema({
     name: {
       type: String,
-      required: true
+      required: [true, "name of event is required"],
     },
     picture: {
         type: String,
-        required: true
+        required: [true, "picture is required"],
     },
     eventDate: {
         type: Date,
-        required: true
+        // required: [true, "eventDate is required"],
     },
     eventTime: {
         type: String,
-        required: true
+        required: [true, "eventTime is required"],
     },
     ticketLink: {
         type: String,
-        required: true,
+        required: [true, "ticketLink is required"],
     },
     clubId: {
         type: Schema.Types.ObjectId,
         ref: 'Club',
-        required: true
+        required: [true, "clubId is required"],
+    },
+    isTableConfigAdded:{
+        type:Boolean,
+        default: false
+    },
+    isDeleted: {
+        type:Boolean,
+        default: false
     }
-});
+},{timestamps:true});
 
 module.exports = mongoose.model('Event', eventSchema);

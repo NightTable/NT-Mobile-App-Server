@@ -1,10 +1,3 @@
-// NightTable, LLC has been granted a license by John Nydam 
-// to use this document and the information contained in it 
-// for business objectives pertinent to the company. 
-// It must not be copied, duplicated, or used in any manner, 
-// or transmitted to others without the written consent of John Nydam. 
-// It must be returned to John Nydam when its authorized use is terminated. 
-
 const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
@@ -12,41 +5,52 @@ const Schema = mongoose.Schema;
 const representativeSchema = new Schema({
     firstName: {
         type: String,
-        required: true
+        required: [true, "firstName is required"]
     },
     lastName: {
         type: String,
-        required: true,
+        required: [true, "lastName is required"],
     },
     email: {
         type: String,
-        required: true
+        required: [true, "email is required"],
+        unique:[true, "email is unique"] 
     },
     phoneNumber: {
         type: String,
-        required: true
-    },
-    password: {
-        type: String,
-        required: true
+        required: [true, "phoneNumber is required"],
+        unique:[true, "phone Number is unique"]   
     },
     username: {
         type: String,
-        required: true
-    },
-    isVerified: {
-        type: Boolean,
-        required: true
-    },
-    clubId:{
-        type: Schema.Types.ObjectId,
-        ref: 'Club',
-        required: true
+        required: [true, "username is required"],
+        unique:[true, "username is unique"]    
     },
     role: {
         type: String,
-        required: true
+        required: true,
+        // enum: ["staff", "management", "host", "promoter", "godfather"]
     },
-});
+    clubPrivileges:[{
+        club:{
+            type: Schema.Types.ObjectId,
+            ref: 'Club',
+        },
+        privileges:{
+            type: Schema.Types.ObjectId,
+            ref: 'Privilege',
+        }
+    }],
+    isDeleted: {
+        type:Boolean,
+        default: false
+    }
+},{timestamps:true});
 
 module.exports = mongoose.model('Representative', representativeSchema);
+
+// populate the schema using following example
+// SchemaC.findOne().populate('references.reference1 references.reference2').exec(function (err, schemaC) {
+//     console.log(schemaC.references.reference1.name);
+//     console.log(schemaC.references.reference2.name);
+//   });
