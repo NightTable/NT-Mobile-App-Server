@@ -6,7 +6,18 @@ const Event = require("../models/Event");
 router.get("/club/:clubid", async (req, res) => {
   try {
     let clubId = req.params.clubid;
-    const eventResults = await Event.find({ clubId: clubId, isDeleted: false });
+    let date = req.body.date;
+    let filter;
+    if(date){
+      filter = {
+        clubId: clubId, isDeleted: false, eventDate: date
+      }
+    }else{
+      filter = {
+        clubId: clubId, isDeleted: false
+      }
+    }
+    const eventResults = await Event.find(filter);
     if (!eventResults.length)
       return res
         .status(404)
