@@ -1,22 +1,22 @@
 const express = require('express');
-const passport = require('passport')
+// const passport = require('passport')
 const router = express.Router();
 const jwt = require("jsonwebtoken");
-const Bcrypt = require("bcrypt");
+// const Bcrypt = require("bcrypt");
 const User = require("../models/User");
-const RefreshToken = require("../models/RefreshToken");
-const nodemailer = require("nodemailer");
-const sendgridTransport = require("nodemailer-sendgrid-transport");
-const LocalStrategy = require("passport-local").Strategy;
+// const RefreshToken = require("../models/RefreshToken");
+// const nodemailer = require("nodemailer");
+// const sendgridTransport = require("nodemailer-sendgrid-transport");
+// const LocalStrategy = require("passport-local").Strategy;
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const client = require("twilio")(accountSid, authToken);
 const otpModel = require("../models/Otp");
 let representativeModel = require("../models/Representative");
 
-const flash = require("express-flash");
-const session = require("express-session");
-const methodOverride = require("method-override");
+// const flash = require("express-flash");
+// const session = require("express-session");
+// const methodOverride = require("method-override");
 const { ObjectId } = require("mongodb");
 const { Country, State, City } = require("country-state-city");
 let axios = require("axios");
@@ -112,13 +112,13 @@ router.post("/generateOTP", async (req, res) => {
     if (!numberValidation.data.valid) {
       return res
         .status(400)
-        .send({ status: false, message: "invalid Phone number" });
+        .send({ status: false, message: "Invalid Phone number" });
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000);
     let issuedAtTime = Date.now();
 
-    let expiryAt = issuedAtTime + 100000; //expiry of 100 seconds change to 300
+    let expiryAt = issuedAtTime + 1000000; //expiry of 100 seconds change to 300
 
     let otpInstance = {
       otp: otp,
@@ -170,10 +170,10 @@ router.post("/verifyOtp", async (req, res) => {
   try {
     let { reqPhoneNumber, reqOtp } = req.body;
     if (!reqPhoneNumber) {
-      return res.status(400).send({ status: false, message: "bad request" });
+      return res.status(400).send({ status: false, message: "Phone number is required" });
     }
     if (!reqOtp) {
-      return res.status(400).send({ status: false, message: "bad request" });
+      return res.status(400).send({ status: false, message: "OTP is required" });
     }
 
     //getting OTP data from DB to match with the OTP in request
@@ -212,7 +212,7 @@ router.post("/verifyOtp", async (req, res) => {
       if (!user) {
         return res.status(400).send({
           status: false,
-          message: "Registration failed. Please try again.",
+          message: "User or representative not found.",
         });
       } else {
         // allow user login and generate a token
@@ -222,14 +222,14 @@ router.post("/verifyOtp", async (req, res) => {
         return res.status(200).send({
           status: true,
           token: token,
-          message: "user logged in!",
+          message: "user logged in and token generated!",
           data: user,
         });
       }
     }
     return res
       .status(403)
-      .send({ status: false, message: "verification failed" });
+      .send({ status: false, message: "Verification failed! Please try again." });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
