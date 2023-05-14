@@ -145,40 +145,40 @@ if (process.env.NODE_ENV !== "test") {
   listenedServerInstance = app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`);
   });
-
-  io = socketio(listenedServerInstance);
-
-  io.on("connect", (socket) => {
-    console.log("Congratulations, you connected to the socket server");
-    console.log(`The socket id is ${socket.id}`);
-  });
-
-  io.of("/tableReqNameSpace").on("connect", (socket) => {
-    // code which will handle various table request namespace
-    //
-    //
-
-    console.log(`You connected to the table request namespace`);
-
-    socket.emit(
-      "onTableReqConnectionResponse",
-      "You just connected to the table request namespace"
-    );
-  });
-
-  io.of("/messageChatNameSpace").on("connect", (socket) => {
-    // code which will handle various message chat namespaces
-    //
-    //
-
-    console.log(`You connected to the message chat namespace`);
-
-    socket.emit(
-      "onMessageChatConnectionResponse",
-      "You just connected to the message chat namespace"
-    );
-  });
 }
+  // io = socketio(listenedServerInstance);
+
+  // io.on("connect", (socket) => {
+  //   console.log("Congratulations, you connected to the socket server");
+  //   console.log(`The socket id is ${socket.id}`);
+  // });
+
+//   io.of("/tableReqNameSpace").on("connect", (socket) => {
+//     // code which will handle various table request namespace
+//     //
+//     //
+
+//     console.log(`You connected to the table request namespace`);
+
+//     socket.emit(
+//       "onTableReqConnectionResponse",
+//       "You just connected to the table request namespace"
+//     );
+//   });
+
+//   io.of("/messageChatNameSpace").on("connect", (socket) => {
+//     // code which will handle various message chat namespaces
+//     //
+//     //
+
+//     console.log(`You connected to the message chat namespace`);
+
+//     socket.emit(
+//       "onMessageChatConnectionResponse",
+//       "You just connected to the message chat namespace"
+//     );
+//   });
+// }
 
 const mongooseConnection = mongoose
   .connect(
