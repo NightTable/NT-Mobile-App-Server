@@ -20,7 +20,29 @@ router.get("/club/:clubId", async (req, res) => {
   }
 });
 
-router.post("club/:clubId", async (req, res) => {
+
+
+//make this work --- get table config on basis of eventID 
+router.get("/event/:eventId", async (req, res) => {
+  try {
+    let { eventId } = req.params;
+    let tables = await TableConfiguration.find({
+      eventId: eventId,
+      isDeleted: false,
+    }).lean();
+    if (!tables.length)
+      return res.status(404).send({ status: false, message: "no club found" });
+    return res
+      .status(200)
+      .send({ status: true, message: "success", data: tables });
+  } catch (error) {
+    return res.status(500).send({ status: false, message: error.message });
+  }
+});
+
+
+
+router.post("/club/:clubId", async (req, res) => {
   try {
     let { clubId } = req.params;
     let tableConfiguration = req.body;

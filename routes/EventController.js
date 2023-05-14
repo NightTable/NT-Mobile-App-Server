@@ -3,6 +3,10 @@ const express = require("express");
 const router = express.Router();
 const Event = require("../models/Event");
 
+
+
+
+
 router.get("/club/:clubid", async (req, res) => {
   try {
     let clubId = req.params.clubid;
@@ -32,6 +36,8 @@ router.get("/club/:clubid", async (req, res) => {
     });
   }
 });
+
+
 
 router.get("/club/:clubId/:eventId", async (req, res) => {
   try {
