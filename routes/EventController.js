@@ -71,7 +71,7 @@ router.post("/club/:clubid", async (req, res) => {
   }
 });
 
-router.put("club/:clubId/:eventId", async (req, res) => {
+router.put("/club/:clubId/:eventId", async (req, res) => {
   try {
     let { clubId, eventId } = req.params;
     let updatedClubData = req.body;
@@ -92,7 +92,7 @@ router.put("club/:clubId/:eventId", async (req, res) => {
   }
 });
 
-router.delete("club/:clubId/:eventId", async (req, res) => {
+router.delete("/club/:clubId/:eventId", async (req, res) => {
   try {
     let { clubId, eventId } = req.params;
     let deletedClub = await Event.findOneAndUpdate(
