@@ -2,6 +2,7 @@ const express = require("express");
 // const { ObjectId } = require('mongodb');
 const router = express.Router();
 const TableConfiguration = require("../models/TableConfiguration");
+const Event = require("../models/Event");
 
 router.get("/club/:clubId", async (req, res) => {
   try {
@@ -11,7 +12,7 @@ router.get("/club/:clubId", async (req, res) => {
       isDeleted: false,
     }).lean();
     if (!clubs.length)
-      return res.status(404).send({ status: false, message: "no club found" });
+      return res.status(200).send({ status: false, message: "no club found" });
     return res
       .status(200)
       .send({ status: true, message: "success", data: clubs });
@@ -20,9 +21,7 @@ router.get("/club/:clubId", async (req, res) => {
   }
 });
 
-
-
-//make this work --- get table config on basis of eventID 
+//make this work --- get table config on basis of eventID
 router.get("/event/:eventId", async (req, res) => {
   try {
     let { eventId } = req.params;
@@ -31,7 +30,7 @@ router.get("/event/:eventId", async (req, res) => {
       isDeleted: false,
     }).lean();
     if (!tables.length)
-      return res.status(404).send({ status: false, message: "no club found" });
+      return res.status(200).send({ status: false, message: "no club found" });
     return res
       .status(200)
       .send({ status: true, message: "success", data: tables });
@@ -40,13 +39,20 @@ router.get("/event/:eventId", async (req, res) => {
   }
 });
 
-
-
 router.post("/club/:clubId", async (req, res) => {
   try {
     let { clubId } = req.params;
     let tableConfiguration = req.body;
     tableConfiguration.clubId = clubId;
+    let EventUpdate = await Event.findOneAndUpdate(
+      { _id: tableConfiguration.eventId, isDeleted: false },
+      { isTableConfigAdded: true },
+      { new: true }
+    );
+    if (!EventUpdate)
+      return res
+        .status(200)
+        .send({ status: false, message: "event not found" });
     let table = await TableConfiguration.create(tableConfiguration);
     return res
       .status(201)
@@ -67,7 +73,7 @@ router.put("/:tableconfigId", async (req, res) => {
     );
     if (!updatedTableConfig)
       return res
-        .status(404)
+        .status(200)
         .send({ status: false, message: "table not found" });
     return res
       .status(200)
@@ -90,7 +96,22 @@ router.delete("/:tableconfigId", async (req, res) => {
       { new: true }
     );
     if (!deletedTable)
-      return res.status(404).send({ status: false, message: "not found" });
+      return res.status(200).send({ status: false, message: "not found" });
+    let tableForEventCheck = await TableConfiguration.find({
+      eventId: deletedTable.eventId,
+      isDeleted: false,
+    }).lean();
+    if (!tableForEventCheck.length) {
+      let patchEvent = await Event.findOneAndUpdate(
+        { _id: deletedTable.eventId, isDeleted: false },
+        { isTableConfigAdded: false },
+        { new: true }
+      );
+      if (!patchEvent)
+        return res
+          .status(200)
+          .send({ status: false, message: "event not found" });
+    }
     return res
       .status(200)
       .send({ status: true, message: "successfully deleted" });

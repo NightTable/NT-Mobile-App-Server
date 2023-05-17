@@ -2,29 +2,29 @@ const express = require("express");
 // const { ObjectId } = require("mongodb");
 const router = express.Router();
 const Event = require("../models/Event");
-
-
-
-
+const TableConfiguration = require("../models/TableConfiguration");
 
 router.get("/club/:clubid", async (req, res) => {
   try {
     let clubId = req.params.clubid;
     let date = req.body.date;
     let filter;
-    if(date){
+    if (date) {
       filter = {
-        clubId: clubId, isDeleted: false, eventDate: date
-      }
-    }else{
+        clubId: clubId,
+        isDeleted: false,
+        eventDate: date,
+      };
+    } else {
       filter = {
-        clubId: clubId, isDeleted: false
-      }
+        clubId: clubId,
+        isDeleted: false,
+      };
     }
     const eventResults = await Event.find(filter);
     if (!eventResults.length)
       return res
-        .status(404)
+        .status(200)
         .send({ status: false, message: "No events found for the club" });
     return res
       .status(200)
@@ -37,8 +37,6 @@ router.get("/club/:clubid", async (req, res) => {
   }
 });
 
-
-
 router.get("/club/:clubId/:eventId", async (req, res) => {
   try {
     let { clubId, eventId } = req.params;
@@ -49,12 +47,30 @@ router.get("/club/:clubId/:eventId", async (req, res) => {
     }).lean();
     if (!event)
       return res
-        .status(404)
+        .status(200)
         .send({ status: false, message: "event not found" });
-
+    let tableDetailsForTheEvent;
+    if (event.isTableConfigAdded) {
+      tableDetailsForTheEvent = await TableConfiguration.find({
+        eventId: eventId,
+        isDeleted: false,
+      }).lean();
+      return res
+        .status(200)
+        .send({
+          status: true,
+          message: "table for event found",
+          eventData: event,
+          tableConfigForEvent: tableDetailsForTheEvent,
+        });
+    }
     return res
       .status(200)
-      .send({ status: true, message: "event found", data: event });
+      .send({
+        status: true,
+        message: "event found but no table config added",
+        data: event,
+      });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
@@ -87,7 +103,7 @@ router.put("/club/:clubId/:eventId", async (req, res) => {
       { new: true }
     );
     if (!updatedClub)
-      return res.status(404).send({ status: false, message: "not found" });
+      return res.status(200).send({ status: false, message: "not found" });
     return res.status(200).send({
       status: true,
       message: "successfully updated",
@@ -107,7 +123,7 @@ router.delete("/club/:clubId/:eventId", async (req, res) => {
       { new: true }
     );
     if (!deletedClub)
-      return res.status(404).send({ status: false, message: "not found" });
+      return res.status(200).send({ status: false, message: "not found" });
     return res
       .status(200)
       .send({ status: true, messages: "successfully deleted" });
