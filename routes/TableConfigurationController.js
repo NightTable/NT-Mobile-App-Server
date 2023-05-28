@@ -12,7 +12,7 @@ router.get("/club/:clubId", async (req, res) => {
       isDeleted: false,
     }).lean();
     if (!clubs.length)
-      return res.status(200).send({ status: false, message: "no club found" });
+      return res.status(200).send({ status: false, message: "no table config found" });
     return res
       .status(200)
       .send({ status: true, message: "success", data: clubs });
@@ -62,7 +62,7 @@ router.post("/club/:clubId", async (req, res) => {
   }
 });
 
-router.put("/:tableconfigId", async (req, res) => {
+router.put("/:tableConfigId", async (req, res) => {
   try {
     let { tableConfigId } = req.params;
     let updatedTableConfigData = req.body;
