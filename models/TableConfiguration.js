@@ -27,7 +27,8 @@ const tableConfigurationSchema = new Schema({
     },
     tableMapId:{
         type:String, 
-        required: [true, 'tableMapId is required']
+        required: [true, 'tableMapId is required'],
+        unique: true
     },
     isDeleted: {
         type:Boolean,

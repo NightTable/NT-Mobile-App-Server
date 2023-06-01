@@ -24,12 +24,13 @@ const { getFileStream } = require("./s3");
 
 const authControllerRoutes = require("./routes/AuthController");
 const eventControllerRoutes = require("./routes/EventController");
-const menuControllerRoutes = require ("./routes/MenuController");
+const menuControllerRoutes = require("./routes/MenuController");
 const utilControllerRoutes = require("./controllers/UtilController");
 const clubControllerRoutes = require("./routes/ClubController");
 const tableConfigurationControllerRoutes = require("./routes/TableConfigurationController");
 const userControllerRoutes = require("./routes/UserController");
 const tableRequestControllerRoutes = require("./routes/TableRequestController");
+const participantControllerRoutes = require("./routes/ParticipantController");
 const messageChatControllerRoutes = require("./routes/MessageChatController");
 const transactionControllerRoutes = require("./routes/TransactionController");
 const messageControllerRoutes = require("./routes/MessageController");
@@ -75,9 +76,10 @@ app.use("/api/clubs", clubControllerRoutes);
 app.use("/api/tableconfigurations", tableConfigurationControllerRoutes);
 app.use("/api/tablerequests", tableRequestControllerRoutes);
 // app.use("/api/events", eventControllerRoutes);
-app.use("/api/menu", menuControllerRoutes)
+app.use("/api/menu", menuControllerRoutes);
 app.use("/api/users", userControllerRoutes);
 app.use("/api/events", eventControllerRoutes);
+app.use("/api/participants", participantControllerRoutes);
 // app.use("/api/messagechats", messageChatControllerRoutes);
 // app.use("/api/transactions", transactionControllerRoutes);
 // app.use("/api/messages", messageControllerRoutes);
@@ -116,15 +118,22 @@ app.get("/session", async (req, res, next) => {
     let id = decodedToken.userId;
     let user;
     if (req.body.isRepresentative) {
-      user = await representativeModel.findOne({ _id: id }).populate("clubPrivileges.club clubPrivileges.privileges").lean();
-      if(!user) return res.status(404).send({status:false, message: "not found."})
+      user = await representativeModel
+        .findOne({ _id: id })
+        .populate("clubPrivileges.club clubPrivileges.privileges")
+        .lean();
+      if (!user)
+        return res.status(404).send({ status: false, message: "not found." });
     } else {
       user = await userModel.findOne({ _id: id }).lean();
-      if(!user) return res.status(404).send({status:false, message: "not found."})
+      if (!user)
+        return res.status(404).send({ status: false, message: "not found." });
     }
 
     // let loggedInUser = await user.findById(decodedToken.userId);
-    return res.status(200).send({ status: true, message: "success", loggedInPerson: user });
+    return res
+      .status(200)
+      .send({ status: true, message: "success", loggedInPerson: user });
     // console.log(loggedInUser);
     // req.loggedUser = decodedToken.userId;
   } catch (error) {
@@ -146,12 +155,12 @@ if (process.env.NODE_ENV !== "test") {
     console.log(`Example app listening at http://localhost:${port}`);
   });
 }
-  // io = socketio(listenedServerInstance);
+// io = socketio(listenedServerInstance);
 
-  // io.on("connect", (socket) => {
-  //   console.log("Congratulations, you connected to the socket server");
-  //   console.log(`The socket id is ${socket.id}`);
-  // });
+// io.on("connect", (socket) => {
+//   console.log("Congratulations, you connected to the socket server");
+//   console.log(`The socket id is ${socket.id}`);
+// });
 
 //   io.of("/tableReqNameSpace").on("connect", (socket) => {
 //     // code which will handle various table request namespace

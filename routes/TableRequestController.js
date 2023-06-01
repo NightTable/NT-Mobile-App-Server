@@ -2,12 +2,12 @@ const express = require("express");
 const router = express.Router();
 const ObjectId = require("mongodb").ObjectId;
 const TableRequest = require("../models/TableRequest");
-const TableRequestParticipantMapping = require("../models/TableRequestParticipantMapping");
+// const TableRequestParticipantMapping = require("../models/TableRequestParticipantMapping");
 const TableConfiguration = require("../models/TableConfiguration");
-const Participant = require("../models/Participant");
-const User = require("../models/User");
-const Room = require("../models/Room");
-const UserFriendMapping = require("../models/UserFriendMapping");
+// const Participant = require("../models/Participant");
+// const User = require("../models/User");
+// const Room = require("../models/Room");
+// const UserFriendMapping = require("../models/UserFriendMapping");
 
 router.get("/tablereq/:tableReqId", async (req, res) => {
   try {
@@ -16,7 +16,7 @@ router.get("/tablereq/:tableReqId", async (req, res) => {
       "tableConfigId organizerUserId promoterId"
     );
     if (!tableReq)
-      return res.status(400).send({ status: false, message: "false" });
+      return res.status(200).send({ status: false, message: "Table request not found" });
     return res
       .status(200)
       .send({ status: true, message: "success", data: tableReq });
