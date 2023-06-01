@@ -1,5 +1,5 @@
-const express = require('express');
-const Region = require('../models/Region');
+const express = require("express");
+const Region = require("../models/Region");
 const router = express.Router();
 const Club = require("../models/Club");
 // const User = require("../models/User");
@@ -8,10 +8,50 @@ const Club = require("../models/Club");
 router.post("/createClub", async (req, res) => {
   try {
     let clubData = req.body;
-    let createdClub = await Club.create(clubData);
-    return res
-      .status(201)
-      .send({ status: true, message: "success", data: createdClub });
+    //VALIDATION ADDED
+    if (clubData.name.trim() == "") {
+      return res
+        .status(200)
+        .send({ status: false, message: "Please add the club name!" });
+    } else if (clubData.phoneNumber.trim() == "") {
+      return res
+        .status(200)
+        .send({ status: false, message: "Please add phone number of club" });
+    } else if (clubData.Address.State.trim() === 0) {
+      return res
+        .status(200)
+        .send({ status: false, message: "Please add a state of the club." });
+    } else if (clubData.Address.Country.trim() === 0) {
+      return res
+        .status(200)
+        .send({ status: false, message: "Please add a country of the club ." });
+    } else if (clubData.Address.Address.trim() === 0) {
+      return res
+        .status(200)
+        .send({ status: false, message: "Please add a address of the club." });
+    } else if (clubData.instaHandle.trim() == "") {
+      return res
+        .status(200)
+        .send({ status: false, message: "Please add the instagram handler" });
+    } else if (clubData.website.trim() == "") {
+      return res.status(200).send({
+        status: false,
+        message: "Please add website link of the club !",
+      });
+    } else if (clubData.stripeAccountNumber.trim() == "") {
+      return res
+        .status(200)
+        .send({ status: false, message: "Please add stripe Account Number !" });
+    } else if (clubData.lineItems.length === 0) {
+      return res
+        .status(200)
+        .send({ status: false, message: "Please add a line item." });
+    } else {
+      let createdClub = await Club.create(clubData);
+      return res
+        .status(201)
+        .send({ status: true, message: "success", data: createdClub });
+    }
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
@@ -168,11 +208,12 @@ router.get("/clubs", async (req, res) => {
 router.get("/:clubid", async (req, res) => {
   try {
     let clubId = req.params.clubid;
-    let retrievedClubObject = await Club.findOne({_id:clubId, isDeleted: false}).populate('menu');
+    let retrievedClubObject = await Club.findOne({
+      _id: clubId,
+      isDeleted: false,
+    }).populate("menu");
     if (!retrievedClubObject) {
-      return res
-        .status(404)
-        .send({ status: false, message: "no club found." });
+      return res.status(404).send({ status: false, message: "no club found." });
     }
     return res
       .status(200)
