@@ -57,6 +57,27 @@ router.post("/createClub", async (req, res) => {
   }
 });
 
+router.get("/club/:clubid", async (req, res) => {
+  try {
+    let club_id = req.params.clubid;
+    let getClubDetails = await Club.findOne({ _id: club_id });
+    if (!getClubDetails) {
+      return res.status(200).send({
+        status: false,
+        message: "Club Details Not Found!",
+      });
+    } else {
+      return res.status(200).send({
+        status: true,
+        message: "Club Details Found!",
+        data: getClubDetails,
+      });
+    }
+  } catch (error) {
+    return res.status(500).send({ status: false, message: error.message });
+  }
+});
+
 router.put("/club/:clubid", async (req, res) => {
   try {
     let clubId = req.params.clubid;
