@@ -215,8 +215,8 @@ router.get("/clubs", async (req, res) => {
     let clubs = await Club.find(filter).lean();
     if (!clubs.length) {
       return res
-        .status(404)
-        .send({ status: false, message: "no clubs found with given filter" });
+        .status(200)
+        .send({ status: true, message: "NO Clubs Found!", data: [] });
     }
     return res
       .status(200)
