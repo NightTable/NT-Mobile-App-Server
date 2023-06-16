@@ -1,4 +1,4 @@
-const express = require('express');
+const express = require("express");
 // const passport = require('passport')
 const router = express.Router();
 const jwt = require("jsonwebtoken");
@@ -45,42 +45,35 @@ router.get("/getCountryCodes", async (req, res) => {
   }
 });
 
-
-router.post('/getStatesOfCountry', async(req,res)=>{
+router.post("/getStatesOfCountry", async (req, res) => {
   try {
-    const {countryCode} = req.body;
+    const { countryCode } = req.body;
 
-      let States = State.getStatesOfCountry(countryCode);
-      
-      if(States && States.length > 0)
-      {
-          return res.json({status:200, msg:'success',data : States});
-      }
-      else
-      {
-          return res.json({status:400, msg:'no data found'});
-      }
+    let States = State.getStatesOfCountry(countryCode);
+
+    if (States && States.length > 0) {
+      return res.json({ status: 200, msg: "success", data: States });
+    } else {
+      return res.json({ status: 400, msg: "no data found" });
+    }
   } catch (error) {
-      return res.json({status : 500 , msg:'internal server error'});
+    return res.json({ status: 500, msg: "internal server error" });
   }
-})
+});
 
-router.post('/citiesOfStates', async(req,res)=> {
+router.post("/citiesOfStates", async (req, res) => {
   try {
-    const {countryCode, stateCode} = req.body;
+    const { countryCode, stateCode } = req.body;
     let Cities = City.getCitiesOfState(countryCode, stateCode);
-    if(Cities && Cities.length > 0)
-    {
-        return res.json({status:200, msg:'success',data : Cities});
+    if (Cities && Cities.length > 0) {
+      return res.json({ status: 200, msg: "success", data: Cities });
+    } else {
+      return res.json({ status: 400, msg: "failed" });
     }
-    else
-    {
-        return res.json({status:400, msg:'failed'});
-    }
-} catch (error) {
-    return res.json({status : 500 , msg:'internal server error'});
-}
-})
+  } catch (error) {
+    return res.json({ status: 500, msg: "internal server error" });
+  }
+});
 
 const checkToken = async (req, res) => {
   let token1 = req.header("Authorization");
@@ -149,14 +142,14 @@ router.post("/generateOTP", async (req, res) => {
     // });
 
     // triggering a SMS to client mobile using twillio
-    // client.messages
-    //   .create({
-    //     body: `OTP is ${otp}`,
-    //     messagingServiceSid: "MGc5765f4a412dff397d740dbf25710c27",
-    //     to: '+16175300464',
-    //   })
-    //   .then((message) => console.log(message.sid))
-    //   .done();
+    client.messages
+      .create({
+        body: `OTP is ${otp}`,
+        messagingServiceSid: "MGc5765f4a412dff397d740dbf25710c27",
+        to: "+16175300464",
+      })
+      .then((message) => console.log(message.sid))
+      .catch((err) => console.log(err));
 
     return res
       .status(200)
@@ -170,10 +163,14 @@ router.post("/verifyOtp", async (req, res) => {
   try {
     let { reqPhoneNumber, reqOtp } = req.body;
     if (!reqPhoneNumber) {
-      return res.status(400).send({ status: false, message: "Phone number is required" });
+      return res
+        .status(400)
+        .send({ status: false, message: "Phone number is required" });
     }
     if (!reqOtp) {
-      return res.status(400).send({ status: false, message: "OTP is required" });
+      return res
+        .status(400)
+        .send({ status: false, message: "OTP is required" });
     }
 
     //getting OTP data from DB to match with the OTP in request
@@ -229,7 +226,10 @@ router.post("/verifyOtp", async (req, res) => {
     }
     return res
       .status(403)
-      .send({ status: false, message: "Verification failed! Please try again." });
+      .send({
+        status: false,
+        message: "Verification failed! Please try again.",
+      });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
