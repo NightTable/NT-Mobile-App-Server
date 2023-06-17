@@ -104,7 +104,7 @@ router.post("/generateOTP", async (req, res) => {
     // console.log(numberValidation.data);
     if (!numberValidation.data.valid) {
       return res
-        .status(400)
+        .status(200)
         .send({ status: false, message: "Invalid Phone number" });
     }
 
