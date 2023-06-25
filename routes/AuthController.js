@@ -111,7 +111,7 @@ router.post("/generateOTP", async (req, res) => {
     const otp = Math.floor(100000 + Math.random() * 900000);
     let issuedAtTime = Date.now();
 
-    let expiryAt = issuedAtTime + 1000000; //expiry of 100 seconds change to 300
+    let expiryAt = issuedAtTime + 10000000000; //expiry of 100 seconds change to 300
 
     let otpInstance = {
       otp: otp,
@@ -142,14 +142,14 @@ router.post("/generateOTP", async (req, res) => {
     // });
 
     // triggering a SMS to client mobile using twillio
-    client.messages
-      .create({
-        body: `OTP is ${otp}`,
-        messagingServiceSid: "MGc5765f4a412dff397d740dbf25710c27",
-        to: "+16175300464",
-      })
-      .then((message) => console.log(message.sid))
-      .catch((err) => console.log(err));
+    // client.messages
+    //   .create({
+    //     body: `OTP is ${otp}`,
+    //     messagingServiceSid: "MGc5765f4a412dff397d740dbf25710c27",
+    //     to: "+16175300464",
+    //   })
+    //   .then((message) => console.log(message.sid))
+    //   .catch((err) => console.log(err));
 
     return res
       .status(200)
