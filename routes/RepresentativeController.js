@@ -19,16 +19,16 @@ router.post("/createRepresentative", async (req, res) => {
       return updateRespresentativeFunction(req, res);
     }
     let repObject = req.body;
-    // let clubPrivilegesArray = repObject.clubPrivileges;
-    // let clubPrivileges = [];
-    // for (let club of clubPrivilegesArray) {
-    //   let privileges = club.privileges;
-    //   let privilegesDBInstance = await Privileges.create(privileges);
-    //   club.privileges = privilegesDBInstance._id.toString();
-    //   clubPrivileges.push(club);
-    // }
-    // req.body.clubPrivileges = clubPrivileges;
-    // repObject = req.body;
+    let clubPrivilegesArray = repObject.clubPrivileges;
+    let clubPrivileges = [];
+    for (let club of clubPrivilegesArray) {
+      let privileges = club.privileges;
+      let privilegesDBInstance = await Privileges.create(privileges);
+      club.privileges = privilegesDBInstance._id.toString();
+      clubPrivileges.push(club);
+    }
+    req.body.clubPrivileges = clubPrivileges;
+    repObject = req.body;
     //creating the representative in the DB
     let representative = await Representative.create(repObject);
     if (!representative)
@@ -47,16 +47,16 @@ router.post("/createRepresentative", async (req, res) => {
 let updateRespresentativeFunction = async (req, res) => {
   try {
     let repObject = req.body;
-    // let clubPrivilegesArray = repObject.clubPrivileges;
-    // let clubPrivileges = [];
-    // for (let club of clubPrivilegesArray) {
-    //   let privileges = club.privileges;
-    //   let privilegesDBInstance = await Privileges.create(privileges);
-    //   club.privileges = privilegesDBInstance._id.toString();
-    //   clubPrivileges.push(club);
-    // }
-    // req.body.clubPrivileges = clubPrivileges;
-    // repObject = req.body;
+    let clubPrivilegesArray = repObject.clubPrivileges;
+    let clubPrivileges = [];
+    for (let club of clubPrivilegesArray) {
+      let privileges = club.privileges;
+      let privilegesDBInstance = await Privileges.create(privileges);
+      club.privileges = privilegesDBInstance._id.toString();
+      clubPrivileges.push(club);
+    }
+    req.body.clubPrivileges = clubPrivileges;
+    repObject = req.body;
     //updating the representative in the DB
     let representative = await Representative.findOneAndUpdate(
       { phoneNumber: repObject.phoneNumber, isDeleted: false },
@@ -82,7 +82,9 @@ router.get("/representative/:id", async (req, res) => {
     let representative = await Representative.findOne({
       _id: req.params.id,
       isDeleted: false,
-    }).populate("associatedClubs");
+    }).populate(
+      "clubPrivileges.club clubPrivileges.privileges associatedClubs"
+    );
     if (!representative)
       return res
         .status(200)
@@ -102,11 +104,15 @@ router.get("/representative", async (req, res) => {
   try {
     let representatives = await Representative.find({
       isDeleted: false,
-    }).populate("clubPrivileges.club clubPrivileges.privileges");
+    }).populate(
+      "clubPrivileges.club clubPrivileges.privileges associatedClubs"
+    );
     if (!representatives.length)
-      return res
-        .status(200)
-        .send({ status: false, message: "representatives not found",data: [] });
+      return res.status(200).send({
+        status: false,
+        message: "representatives not found",
+        data: [],
+      });
     return res.status(200).send({
       status: true,
       message: "representatives found",
@@ -123,12 +129,16 @@ router.get("/club/:clubId", async (req, res) => {
     let clubId = req.params.clubId;
     let representatives = await Representative.find({
       isDeleted: false,
-      'clubPrivileges.club': clubId,
-    }).populate('clubPrivileges.club clubPrivileges.privileges');
+      "clubPrivileges.club": clubId,
+    }).populate(
+      "clubPrivileges.club clubPrivileges.privileges associatedClubs"
+    );
     if (!representatives.length)
-      return res
-        .status(200)
-        .send({ status: false, message: "representatives not found", data: [] });
+      return res.status(200).send({
+        status: false,
+        message: "representatives not found",
+        data: [],
+      });
     return res.status(200).send({
       status: true,
       message: "representatives found",
@@ -151,6 +161,13 @@ router.delete("/representative/:id", async (req, res) => {
       return res
         .status(404)
         .send({ status: false, message: "representative not found" });
+
+        let privilegeIdArr = [];
+        for(let ele of representative.clubPrivileges){
+          privilegeIdArr.push(ele.privileges);
+        }
+
+    let removePrivileges = await Privileges.updateMany({_id:{$in:privilegeIdArr}},{isDeleted:true},{new:true})
     return res
       .status(200)
       .send({ status: true, message: "representative deleted" });

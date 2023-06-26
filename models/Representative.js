@@ -33,16 +33,16 @@ const representativeSchema = new Schema(
       enum: ["staff", "management", "host", "promoter", "godfather"],
     },
     associatedClubs: [{ type: Schema.Types.ObjectId, ref: "Club" }],
-    // clubPrivileges:[{
-    //     club:{
-    //         type: Schema.Types.ObjectId,
-    //         ref: 'Club',
-    //     },
-    //     privileges:{
-    //         type: Schema.Types.ObjectId,
-    //         ref: 'Privilege',
-    //     }
-    // }],
+    clubPrivileges:[{
+        club:{
+            type: Schema.Types.ObjectId,
+            ref: 'Club',
+        },
+        privileges:{
+            type: Schema.Types.ObjectId,
+            ref: 'Privilege',
+        }
+    }],
     isDeleted: {
       type: Boolean,
       default: false,
