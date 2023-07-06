@@ -14,18 +14,20 @@ let uploadFile = (file, id) => {
     };
 
     s3.headObject(params, function (err, data) {
-        
+
       if (!err) {
         // If file exists, return its link
         console.log(
-          "File exists. Link: " + s3.getSignedUrl("getObject", params)
+          "File exists. Link: " //+ s3.getUri("getObject", params)
         );
-        return resolve(s3.getSignedUrl("getObject", params));
+        console.log(`https://${params.Bucket}.s3.amazonaws.com/${params.Key}`);
+        return resolve(`https://${params.Bucket}.s3.amazonaws.com/${params.Key}`);
       } else {
         // If file does not exist, upload the file
         // var file = file;
         var uploadParams = {
           Bucket: "testdevphotos",
+          // ACL: "public-read",
           Key: id.toString()+ "/" + file.originalname,
           Body: file.buffer,
         };
@@ -33,9 +35,9 @@ let uploadFile = (file, id) => {
           if (!err) {
             console.log(
               "File uploaded successfully. Link: " +
-                s3.getSignedUrl("getObject", params)
+                JSON.stringify(data.Location)
             );
-            return resolve(s3.getSignedUrl("getObject", params));
+            return resolve(data.Location);
           } else {
             console.log("File upload failed. Error: " + err);
           }
@@ -44,7 +46,6 @@ let uploadFile = (file, id) => {
     });
   });
 };
-
 
 
 module.exports = { uploadFile };
