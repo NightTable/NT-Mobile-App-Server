@@ -11,13 +11,16 @@ router.post("/createRepresentative", async (req, res) => {
   try {
     //need to add a CONDITION where the representative already exists -- only a new club and its privileges are being added to it
     //we can add a middleware which will check if the rep exists - if exists we will redirect to the patch request
-    let representativeCheck = await Representative.findOne({
-      phoneNumber: req.body.phoneNumber,
-    });
-    console.log(representativeCheck);
-    if (representativeCheck) {
-      return updateRespresentativeFunction(req, res);
-    }
+    // let representativeCheck = await Representative.findOne({
+    //   phoneNumber: req.body.phoneNumber,
+    //   email: req.body.email,
+    //   username: req.body.username,
+    // isDeleted: false
+    // });
+    // console.log(representativeCheck);
+    // if (representativeCheck) {
+    //   return updateRespresentativeFunction(req, res);
+    // }
     let repObject = req.body;
     let clubPrivilegesArray = repObject.clubPrivileges;
     let clubPrivileges = [];
@@ -59,7 +62,7 @@ let updateRespresentativeFunction = async (req, res) => {
     repObject = req.body;
     //updating the representative in the DB
     let representative = await Representative.findOneAndUpdate(
-      { phoneNumber: repObject.phoneNumber, isDeleted: false },
+      { phoneNumber: repObject.phoneNumber, isDeleted: false,_id:req.params.representativeId },
       repObject,
       { new: true }
     );
@@ -74,7 +77,7 @@ let updateRespresentativeFunction = async (req, res) => {
     return res.status(500).send({ status: false, message: error });
   }
 };
-router.put("/updateRepresentative", updateRespresentativeFunction);
+router.put("/updateRepresentative/:representativeId", updateRespresentativeFunction);
 
 //get representative details based on representative ID
 router.get("/representative/:id", async (req, res) => {
@@ -162,12 +165,16 @@ router.delete("/representative/:id", async (req, res) => {
         .status(404)
         .send({ status: false, message: "representative not found" });
 
-        let privilegeIdArr = [];
-        for(let ele of representative.clubPrivileges){
-          privilegeIdArr.push(ele.privileges);
-        }
+    let privilegeIdArr = [];
+    for (let ele of representative.clubPrivileges) {
+      privilegeIdArr.push(ele.privileges);
+    }
 
-    let removePrivileges = await Privileges.updateMany({_id:{$in:privilegeIdArr}},{isDeleted:true},{new:true})
+    let removePrivileges = await Privileges.updateMany(
+      { _id: { $in: privilegeIdArr } },
+      { isDeleted: true },
+      { new: true }
+    );
     return res
       .status(200)
       .send({ status: true, message: "representative deleted" });
