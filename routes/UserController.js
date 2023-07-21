@@ -43,201 +43,212 @@ router.put('/user/:userId', async(req,res)=>{
 
 })
 
-router.get('/query', async (req, res) => {
-
-    try {
-
-        let queryObject = url.parse(req.url, true).query;
-        let nameParam = queryObject.name;
-    
-        let nameWordArray = nameParam.split(' ');
-    
-        let firstName = nameWordArray[0];
-        let lastName = nameWordArray[1];
-
-        let userResult = await User.find({ 
-            "firstName": { "$regex": firstName, "$options": "i" },
-            "lastName": { "$regex": lastName, "$options": "i" }});
-
-        let preparedUserList = [];
-
-        for (let i = 0; i < userResult.length; i++) {
-
-            let preparedUserResult = {
-                id: userResult[0].id,
-                name: `${userResult[0].firstName} ${userResult[0].lastName}`
-            }
-
-            preparedUserList.push(preparedUserResult);
-
-        }
-
-        res.json(preparedUserList);
-
-    } catch (err) {
-
-        res.status(400).send({ message: "Invalid input prevented the friend query to be completed"});
-
+router.get('/user', async(req,res)=> {
+    try{
+        let phoneNumber = req.body.phoneNumber;
+        let user = await User.findOne({phoneNumber:phoneNumber, isDeleted:false}).lean();
+        if(!user) return res.status(200).send({status:false, message:'user not found'})
+        return res.status(200).send({status:true, message: 'user found', data: user})
+    }catch(error){
+        return res.status(500).send({status:false, message: error.message})
     }
+})
 
-});
+// router.get('/query', async (req, res) => {
 
-router.get('/name/:name', async (req, res) => {
+//     try {
 
-    let nameParam = req.params.name;
-    let nameWordArray = nameParam.trim().split(' ');
+//         let queryObject = url.parse(req.url, true).query;
+//         let nameParam = queryObject.name;
+    
+//         let nameWordArray = nameParam.split(' ');
+    
+//         let firstName = nameWordArray[0];
+//         let lastName = nameWordArray[1];
+
+//         let userResult = await User.find({ 
+//             "firstName": { "$regex": firstName, "$options": "i" },
+//             "lastName": { "$regex": lastName, "$options": "i" }});
+
+//         let preparedUserList = [];
+
+//         for (let i = 0; i < userResult.length; i++) {
+
+//             let preparedUserResult = {
+//                 id: userResult[0].id,
+//                 name: `${userResult[0].firstName} ${userResult[0].lastName}`
+//             }
+
+//             preparedUserList.push(preparedUserResult);
+
+//         }
+
+//         res.json(preparedUserList);
+
+//     } catch (err) {
+
+//         res.status(400).send({ message: "Invalid input prevented the friend query to be completed"});
+
+//     }
+
+// });
+
+// router.get('/name/:name', async (req, res) => {
+
+//     let nameParam = req.params.name;
+//     let nameWordArray = nameParam.trim().split(' ');
 
 
 
-    try {
-        let userResult = null;
-        if (nameWordArray.length == 2){
-            let firstName = nameWordArray[0];
-            let lastName = nameWordArray[1];
-            userResult = await User.find({ 
-                "firstName": { "$regex": firstName, "$options": "i" },
-                "lastName": { "$regex": lastName, "$options": "i" }});
-        }
-        else if (nameWordArray.length == 1){
-            let name = nameWordArray[0];
-            let result1 = await User.find({ "firstName": { "$regex": name, "$options": "i" }});
-            let result2 = await User.find({ "lastName": { "$regex": name, "$options": "i" }});
-            if (result1.length !== 0 && result2.length !== 0){
-                let r1name = result1[0].firstName + " " + result1[0].lastName;
-                let r2name = result2[0].firstName + " " + result2[0].lastName;
+//     try {
+//         let userResult = null;
+//         if (nameWordArray.length == 2){
+//             let firstName = nameWordArray[0];
+//             let lastName = nameWordArray[1];
+//             userResult = await User.find({ 
+//                 "firstName": { "$regex": firstName, "$options": "i" },
+//                 "lastName": { "$regex": lastName, "$options": "i" }});
+//         }
+//         else if (nameWordArray.length == 1){
+//             let name = nameWordArray[0];
+//             let result1 = await User.find({ "firstName": { "$regex": name, "$options": "i" }});
+//             let result2 = await User.find({ "lastName": { "$regex": name, "$options": "i" }});
+//             if (result1.length !== 0 && result2.length !== 0){
+//                 let r1name = result1[0].firstName + " " + result1[0].lastName;
+//                 let r2name = result2[0].firstName + " " + result2[0].lastName;
                 
-                if (r2name != r1name ){
-                    userResult = result1.concat(result2);
-                }
-                else{
-                    userResult = result1;
-                }
-            }
-            else if (result1.length == 0 && result2.length != 0){
-                userResult = result2;
-            }
-            else{
-                userResult = result1;
-            }
+//                 if (r2name != r1name ){
+//                     userResult = result1.concat(result2);
+//                 }
+//                 else{
+//                     userResult = result1;
+//                 }
+//             }
+//             else if (result1.length == 0 && result2.length != 0){
+//                 userResult = result2;
+//             }
+//             else{
+//                 userResult = result1;
+//             }
             
-        }
-        if (userResult.length === 0){
-            return res.status(400).send({ message: `Invalid request -- The requested user with the given name could not be found`});
-        }
-        else{
-            return res.json(userResult);
-        }
-    } catch (err) {
-        res.status(400).send({ message: `Invalid request -- The requested user with the given name could not be found`, error: err});
+//         }
+//         if (userResult.length === 0){
+//             return res.status(400).send({ message: `Invalid request -- The requested user with the given name could not be found`});
+//         }
+//         else{
+//             return res.json(userResult);
+//         }
+//     } catch (err) {
+//         res.status(400).send({ message: `Invalid request -- The requested user with the given name could not be found`, error: err});
 
-        return;
+//         return;
 
-    }
+//     }
 
-});
+// });
 
-router.post('/blockedfriends', async (req, res) => {
-
-
-    let sourceUserIdParam = req.body.sourceUserId;
-    let targetUserIdParam = req.body.targetUserId;
+// router.post('/blockedfriends', async (req, res) => {
 
 
-    try {
+//     let sourceUserIdParam = req.body.sourceUserId;
+//     let targetUserIdParam = req.body.targetUserId;
 
 
-        await UserFriendMapping.deleteOne({ 
-            sourceId: sourceUserIdParam,
-            targetId: targetUserIdParam
-        });
-
-        await UserFriendMapping.deleteOne({ 
-            sourceId: targetUserIdParam,
-            targetId: sourceUserIdParam
-        });
-
-        let createdUserBlockedFriendObject = await UserBlockedFriendMapping.create({
-
-            sourceId: sourceUserIdParam,
-            targetId: targetUserIdParam
-        });
-
-        await createdUserBlockedFriendObject.save();
-
-        res.json({ message: "The blocked relationship was successfully created." });
+//     try {
 
 
-    } catch (err) {
+//         await UserFriendMapping.deleteOne({ 
+//             sourceId: sourceUserIdParam,
+//             targetId: targetUserIdParam
+//         });
 
-        res.status(400).json({ message: "Invalid request -- the blocked relationship was not successfully created. "});
-    }
-});
+//         await UserFriendMapping.deleteOne({ 
+//             sourceId: targetUserIdParam,
+//             targetId: sourceUserIdParam
+//         });
+
+//         let createdUserBlockedFriendObject = await UserBlockedFriendMapping.create({
+
+//             sourceId: sourceUserIdParam,
+//             targetId: targetUserIdParam
+//         });
+
+//         await createdUserBlockedFriendObject.save();
+
+//         res.json({ message: "The blocked relationship was successfully created." });
 
 
-router.post('/friends', async(req, res) => {
+//     } catch (err) {
 
-    let sourceUserIdParam = req.body.sourceUserId;
-    let targetUserIdParam = req.body.targetUserId;
+//         res.status(400).json({ message: "Invalid request -- the blocked relationship was not successfully created. "});
+//     }
+// });
 
-    try {
 
-        await UserFriendMapping.create({
-            sourceId: new ObjectId(sourceUserIdParam),
-            targetId: new ObjectId(targetUserIdParam)
-        });
+// router.post('/friends', async(req, res) => {
+
+//     let sourceUserIdParam = req.body.sourceUserId;
+//     let targetUserIdParam = req.body.targetUserId;
+
+//     try {
+
+//         await UserFriendMapping.create({
+//             sourceId: new ObjectId(sourceUserIdParam),
+//             targetId: new ObjectId(targetUserIdParam)
+//         });
     
-        await UserFriendMapping.create({
-            sourceId: new ObjectId(targetUserIdParam),
-            targetId: new ObjectId(sourceUserIdParam)
-        });
+//         await UserFriendMapping.create({
+//             sourceId: new ObjectId(targetUserIdParam),
+//             targetId: new ObjectId(sourceUserIdParam)
+//         });
 
-        res.json({ message: "The friend relationship was created successfully" });
-        return;
+//         res.json({ message: "The friend relationship was created successfully" });
+//         return;
 
-    } catch (err) {
+//     } catch (err) {
 
-        res.status(400).send({ message: "Invalid request -- the friend relationship was not created successfully" });
-        return;
-    }
+//         res.status(400).send({ message: "Invalid request -- the friend relationship was not created successfully" });
+//         return;
+//     }
 
-});
+// });
 
-router.get('/friends/:userid', async (req, res) => {
+// router.get('/friends/:userid', async (req, res) => {
 
-    let userIdParam = req.params.userid;
+//     let userIdParam = req.params.userid;
 
-    let retrievedMappingObjects;
+//     let retrievedMappingObjects;
 
-    try {
+//     try {
 
-        retrievedMappingObjects = await UserFriendMapping.find({ sourceId: new ObjectId(userIdParam)});
+//         retrievedMappingObjects = await UserFriendMapping.find({ sourceId: new ObjectId(userIdParam)});
 
-        let basicInfoFriendList = [];
+//         let basicInfoFriendList = [];
 
-        for (let i = 0; i < retrievedMappingObjects.length; i++) {
+//         for (let i = 0; i < retrievedMappingObjects.length; i++) {
 
-            let localObject = retrievedMappingObjects[i];
+//             let localObject = retrievedMappingObjects[i];
 
-            let userObject = await User.findById(new ObjectId(localObject.targetId));
+//             let userObject = await User.findById(new ObjectId(localObject.targetId));
 
-            let basicInfoFriendObject = {
-                id: userObject.id,
-                name: userObject.firstName + " " + userObject.lastName
-            }
+//             let basicInfoFriendObject = {
+//                 id: userObject.id,
+//                 name: userObject.firstName + " " + userObject.lastName
+//             }
 
-            basicInfoFriendList.push(basicInfoFriendObject);
-        }
+//             basicInfoFriendList.push(basicInfoFriendObject);
+//         }
 
-        res.json(basicInfoFriendList);
-        return;
+//         res.json(basicInfoFriendList);
+//         return;
 
-    } catch (err) { 
+//     } catch (err) { 
 
-        res.status(400).send({ message: "Invalid input prevented any friends from being returned" });
-        return;
-    }
+//         res.status(400).send({ message: "Invalid input prevented any friends from being returned" });
+//         return;
+//     }
 
-});
+// });
 
 
 router.get('/:userid', async (req, res) => {
@@ -256,133 +267,133 @@ router.get('/:userid', async (req, res) => {
     }
 });
 
-router.post('/', async (req, res) => {
+// router.post('/', async (req, res) => {
 
 
-    let firstNameParam = null;
-    let lastNameParam = null;
-    let userNameParam = null;
-    let profilePhotoParam = null;
-    let genderParam = null;
-    let isProfileSetupParam = null;
-    let isIntermediarySetupParam = null;
-    let instaHandleParam = null;
-    let phoneNumberParam = null;
-    let passwordParam = null;
-    let roleParam = null;
+//     let firstNameParam = null;
+//     let lastNameParam = null;
+//     let userNameParam = null;
+//     let profilePhotoParam = null;
+//     let genderParam = null;
+//     let isProfileSetupParam = null;
+//     let isIntermediarySetupParam = null;
+//     let instaHandleParam = null;
+//     let phoneNumberParam = null;
+//     let passwordParam = null;
+//     let roleParam = null;
 
-    try {
+//     try {
 
-        firstNameParam = req.body.firstName;
-        lastNameParam = req.body.lastName;
-        userNameParam = req.body.userName;
-        profilePhotoParam = req.body.profilePhoto;
-        genderParam = req.body.gender;
-        isProfileSetupParam = req.body.isProfileSetup;
-        isIntermediarySetupParam = req.body.isIntermediarySetup;
-        instaHandleParam = req.body.instaHandle;
-        phoneNumberParam = parseInt(req.body.phoneNumber);
-        passwordParam = req.body.password;
-        roleParam = req.body.role;
+//         firstNameParam = req.body.firstName;
+//         lastNameParam = req.body.lastName;
+//         userNameParam = req.body.userName;
+//         profilePhotoParam = req.body.profilePhoto;
+//         genderParam = req.body.gender;
+//         isProfileSetupParam = req.body.isProfileSetup;
+//         isIntermediarySetupParam = req.body.isIntermediarySetup;
+//         instaHandleParam = req.body.instaHandle;
+//         phoneNumberParam = parseInt(req.body.phoneNumber);
+//         passwordParam = req.body.password;
+//         roleParam = req.body.role;
 
-    } catch (exception) {
+//     } catch (exception) {
 
 
-        res.status(400).send("Invalid request -- Could not parse inputs");
-        return;
-    }
+//         res.status(400).send("Invalid request -- Could not parse inputs");
+//         return;
+//     }
 
-    // checkig the case if the user does not put in all the required parameters 
+//     // checkig the case if the user does not put in all the required parameters 
 
-    const allInputsPresent = (
-        firstNameParam !== undefined &&
-        lastNameParam !== undefined &&
-        userNameParam !== undefined &&
-        profilePhotoParam !== undefined &&
-        genderParam !== undefined &&
-        isProfileSetupParam !== undefined &&
-        isIntermediarySetupParam !== undefined &&
-        instaHandleParam !== undefined &&
-        phoneNumberParam !== undefined &&
-        passwordParam !== undefined &&
-        roleParam !== undefined
-    )
+//     const allInputsPresent = (
+//         firstNameParam !== undefined &&
+//         lastNameParam !== undefined &&
+//         userNameParam !== undefined &&
+//         profilePhotoParam !== undefined &&
+//         genderParam !== undefined &&
+//         isProfileSetupParam !== undefined &&
+//         isIntermediarySetupParam !== undefined &&
+//         instaHandleParam !== undefined &&
+//         phoneNumberParam !== undefined &&
+//         passwordParam !== undefined &&
+//         roleParam !== undefined
+//     )
 
-    if (!allInputsPresent) {
+//     if (!allInputsPresent) {
 
-        res.status(400).send("Invalid request -- All inputs not present");
-        return;
+//         res.status(400).send("Invalid request -- All inputs not present");
+//         return;
 
-    } else {
+//     } else {
 
-        try {
+//         try {
 
-            const newUserObject = await User.create({
-                firstName: firstNameParam,
-                lastName: lastNameParam,
-                userName: userNameParam,
-                profilePhoto: profilePhotoParam,
-                gender: genderParam,
-                isProfileSetup: isProfileSetupParam,
-                isIntermediarySetup: isIntermediarySetupParam,
-                instaHandle: instaHandleParam,
-                phoneNumber: phoneNumberParam,
-                password: passwordParam,
-                role: roleParam
-            });
+//             const newUserObject = await User.create({
+//                 firstName: firstNameParam,
+//                 lastName: lastNameParam,
+//                 userName: userNameParam,
+//                 profilePhoto: profilePhotoParam,
+//                 gender: genderParam,
+//                 isProfileSetup: isProfileSetupParam,
+//                 isIntermediarySetup: isIntermediarySetupParam,
+//                 instaHandle: instaHandleParam,
+//                 phoneNumber: phoneNumberParam,
+//                 password: passwordParam,
+//                 role: roleParam
+//             });
         
-            await newUserObject.save();
+//             await newUserObject.save();
 
-            res.json({
-                message: "The user was successfully added to the database"
-            });
+//             res.json({
+//                 message: "The user was successfully added to the database"
+//             });
 
-        } catch (exception) {
+//         } catch (exception) {
 
-            res.status(400).send("Invalid request -- The user was not able to be added to the database");
-        }
-    }
+//             res.status(400).send("Invalid request -- The user was not able to be added to the database");
+//         }
+//     }
 
-});
+// });
 
-router.put('/:userid', async (req, res) => {
-    let userIdParam = req.params.userid;
-    let retrievedUserIdObject = null;
+// router.put('/:userid', async (req, res) => {
+//     let userIdParam = req.params.userid;
+//     let retrievedUserIdObject = null;
 
-    let firstNameParam = null;
-    let lastNameParam = null;
-    let userNameParam = null;
-    let genderParam = null;
-    let phoneNumberParam = null;
-    let emailParam = null;
+//     let firstNameParam = null;
+//     let lastNameParam = null;
+//     let userNameParam = null;
+//     let genderParam = null;
+//     let phoneNumberParam = null;
+//     let emailParam = null;
 
-    try {
-        firstNameParam = req.body.firstName;
-        lastNameParam = req.body.lastName;
-        userNameParam = req.body.userName;
-        genderParam = req.body.gender;
-        phoneNumberParam = parseInt(req.body.phoneNumber);
-        emailParam = req.body.email;
+//     try {
+//         firstNameParam = req.body.firstName;
+//         lastNameParam = req.body.lastName;
+//         userNameParam = req.body.userName;
+//         genderParam = req.body.gender;
+//         phoneNumberParam = parseInt(req.body.phoneNumber);
+//         emailParam = req.body.email;
 
 
-        retrievedUserIdObject = await User.findOneAndUpdate(
-            {_id: new ObjectId(userIdParam)},
-            {
-                firstName: firstNameParam,
-                lastName: lastNameParam,
-                userName: userNameParam,
-                gender: genderParam,
-                phoneNumber: phoneNumberParam,
-                email: emailParam
-            });
-        res.json({message: "The user was updated"});
-        return;
-    } catch (err) { 
-        res.status(400).send({ message: "Invalid request -- the user was not able to be updated"});
-        return;
-    }
+//         retrievedUserIdObject = await User.findOneAndUpdate(
+//             {_id: new ObjectId(userIdParam)},
+//             {
+//                 firstName: firstNameParam,
+//                 lastName: lastNameParam,
+//                 userName: userNameParam,
+//                 gender: genderParam,
+//                 phoneNumber: phoneNumberParam,
+//                 email: emailParam
+//             });
+//         res.json({message: "The user was updated"});
+//         return;
+//     } catch (err) { 
+//         res.status(400).send({ message: "Invalid request -- the user was not able to be updated"});
+//         return;
+//     }
 
-});
+// });
 
 router.delete('/:userid', async (req, res) => {
 
