@@ -1,58 +1,99 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const User = require('../models/User');
-const UserFriendMapping = require('../models/UserFriendMapping');
-const UserBlockedFriendMapping = require('../models/UserBlockedFriendMapping');
-const ObjectId = require('mongodb').ObjectId;
-const url = require('url');
-const { send } = require('process');
+const User = require("../models/User");
+const UserFriendMapping = require("../models/UserFriendMapping");
+const UserBlockedFriendMapping = require("../models/UserBlockedFriendMapping");
+const ObjectId = require("mongodb").ObjectId;
+const url = require("url");
+const { send } = require("process");
 
+//api to add full details of user once he wants to access the table
+router.put("/user", async (req, res) => {
+  let { phoneNumber } = req.body;
+  if (!phoneNumber)
+    return res.status(400).send({ status: false, message: "phone number is required" }); // need to add proper phone number validation
 
-//api to add full detailks of user once he wants to access the table
-router.put('/user/:userId', async(req,res)=>{
-    
-    let userId = req.params.userId;
+  let {
+    firstName,
+    lastName,
+    userName,
+    profilePhoto,
+    gender,
+    email,
+    isProfileSetup,
+    facebookEmail,
+    instaHandle,
+  } = req.body;
 
-    let {firstName, lastName, userName, phoneNumber, profilePhoto, gender, email, isProfileSetup, facebookEmail,  instaHandle} = req.body;
+  //checking if the required values are there or not
+  if (!firstName)
+    return res.status(400).send({ status: false, message: "firstName required" });
+  if (!lastName)
+    return res.status(400).send({ status: false, message: "last Name required" });
+  if (!userName)
+    return res.status(400).send({ status: false, message: "userName required" });
+  if (!profilePhoto)
+    return res.status(400).send({ status: false, message: "profile photo required" });
+  if (!gender)
+    return res.status(400).send({ status: false, message: "gender required" });
+  if (!email) return res.status(400).send({ status: false, message: "email required" });
+  if (!isProfileSetup)
+    return res.status(400).send({ status: false, message: "is profile setup required" });
+  if (!facebookEmail)
+    return res.status(400).send({ status: false, message: "facebook email required" });
+  if (!instaHandle)
+    return res.status(400).send({ status: false, message: "insta handle required" });
 
-    //checking if the required values are there or not
-    if(!firstName) return res.status(400).send({status:false, message: 'failed'});
-    if(!lastName) return res.status(400).send({status:false, message: 'failed'});
-    if(!userName) return res.status(400).send({status:false, message: 'failed'});
-    if(!profilePhoto) return res.status(400).send({status:false, message: 'failed'});
-    if(!gender) return res.status(400).send({status:false, message: 'failed'});
-    if(!email) return res.status(400).send({status:false, message: 'failed'});
-    if(!isProfileSetup) return res.status(400).send({status:false, message: 'failed'});
-    if(!facebookEmail) return res.status(400).send({status:false, message: 'failed'});
-    if(!instaHandle) return res.status(400).send({status:false, message: 'failed'});
-    if(!phoneNumber) return res.status(400).send({status:false, message: 'failed'}); // need to add proper phone number validation
+  //checking if they are not empty spaces
+  if (!firstName.trim())
+    return res.status(400).send({ status: false, message: "first name required" });
+  if (!lastName.trim())
+    return res.status(400).send({ status: false, message: "last name required" });
+  if (!userName.trim())
+    return res.status(400).send({ status: false, message: "user name required" });
+  if (!profilePhoto.trim())
+    return res.status(400).send({ status: false, message: "profile phote required" });
+  if (!gender.trim())
+    return res.status(400).send({ status: false, message: "gender required" });
+  if (!email.trim())
+    return res.status(400).send({ status: false, message: "email required" });
+  if (!facebookEmail.trim())
+    return res.status(400).send({ status: false, message: "face book email required" });
+  if (!instaHandle.trim())
+    return res.status(400).send({ status: false, message: "insta handle required" });
 
-    //checking if they are not empty spaces
-    if(!firstName.trim()) return res.status(400).send({status:false, message: 'failed'});
-    if(!lastName.trim()) return res.status(400).send({status:false, message: 'failed'});
-    if(!userName.trim()) return res.status(400).send({status:false, message: 'failed'});
-    if(!profilePhoto.trim()) return res.status(400).send({status:false, message: 'failed'});
-    if(!gender.trim()) return res.status(400).send({status:false, message: 'failed'});
-    if(!email.trim()) return res.status(400).send({status:false, message: 'failed'});
-    if(!facebookEmail.trim()) return res.status(400).send({status:false, message: 'failed'});
-    if(!instaHandle.trim()) return res.status(400).send({status:false, message: 'failed'});
-
-    let updatedUser = await User.findOneAndUpdate({_id:userId}, req.body, {new:true}).lean();
-    if(!updatedUser) return res.status(404).send({status:false, message: "failed! No user found"});
-    return res.status(201).send({status:true, message: "success", data: updatedUser});
-
-})
-
-router.get('/user', async(req,res)=> {
-    try{
-        let phoneNumber = req.body.phoneNumber;
-        let user = await User.findOne({phoneNumber:phoneNumber, isDeleted:false}).lean();
-        if(!user) return res.status(200).send({status:false, message:'user not found'})
-        return res.status(200).send({status:true, message: 'user found', data: user})
-    }catch(error){
-        return res.status(500).send({status:false, message: error.message})
+  let updatedUser = await User.findOneAndUpdate(
+    { phoneNumber: phoneNumber },
+    req.body,
+    {
+      new: true,
     }
-})
+  ).lean();
+  if (!updatedUser)
+    return res
+      .status(404)
+      .send({ status: false, message: "failed! No user found" });
+  return res
+    .status(201)
+    .send({ status: true, message: "success", data: updatedUser });
+});
+
+router.get("/user", async (req, res) => {
+  try {
+    let phoneNumber = req.body.phoneNumber;
+    let user = await User.findOne({
+      phoneNumber: phoneNumber,
+      isDeleted: false,
+    }).lean();
+    if (!user)
+      return res.status(200).send({ status: false, message: "user not found" });
+    return res
+      .status(200)
+      .send({ status: true, message: "user found", data: user });
+  } catch (error) {
+    return res.status(500).send({ status: false, message: error.message });
+  }
+});
 
 // router.get('/query', async (req, res) => {
 
@@ -60,13 +101,13 @@ router.get('/user', async(req,res)=> {
 
 //         let queryObject = url.parse(req.url, true).query;
 //         let nameParam = queryObject.name;
-    
+
 //         let nameWordArray = nameParam.split(' ');
-    
+
 //         let firstName = nameWordArray[0];
 //         let lastName = nameWordArray[1];
 
-//         let userResult = await User.find({ 
+//         let userResult = await User.find({
 //             "firstName": { "$regex": firstName, "$options": "i" },
 //             "lastName": { "$regex": lastName, "$options": "i" }});
 
@@ -98,14 +139,12 @@ router.get('/user', async(req,res)=> {
 //     let nameParam = req.params.name;
 //     let nameWordArray = nameParam.trim().split(' ');
 
-
-
 //     try {
 //         let userResult = null;
 //         if (nameWordArray.length == 2){
 //             let firstName = nameWordArray[0];
 //             let lastName = nameWordArray[1];
-//             userResult = await User.find({ 
+//             userResult = await User.find({
 //                 "firstName": { "$regex": firstName, "$options": "i" },
 //                 "lastName": { "$regex": lastName, "$options": "i" }});
 //         }
@@ -116,7 +155,7 @@ router.get('/user', async(req,res)=> {
 //             if (result1.length !== 0 && result2.length !== 0){
 //                 let r1name = result1[0].firstName + " " + result1[0].lastName;
 //                 let r2name = result2[0].firstName + " " + result2[0].lastName;
-                
+
 //                 if (r2name != r1name ){
 //                     userResult = result1.concat(result2);
 //                 }
@@ -130,7 +169,7 @@ router.get('/user', async(req,res)=> {
 //             else{
 //                 userResult = result1;
 //             }
-            
+
 //         }
 //         if (userResult.length === 0){
 //             return res.status(400).send({ message: `Invalid request -- The requested user with the given name could not be found`});
@@ -149,20 +188,17 @@ router.get('/user', async(req,res)=> {
 
 // router.post('/blockedfriends', async (req, res) => {
 
-
 //     let sourceUserIdParam = req.body.sourceUserId;
 //     let targetUserIdParam = req.body.targetUserId;
 
-
 //     try {
 
-
-//         await UserFriendMapping.deleteOne({ 
+//         await UserFriendMapping.deleteOne({
 //             sourceId: sourceUserIdParam,
 //             targetId: targetUserIdParam
 //         });
 
-//         await UserFriendMapping.deleteOne({ 
+//         await UserFriendMapping.deleteOne({
 //             sourceId: targetUserIdParam,
 //             targetId: sourceUserIdParam
 //         });
@@ -177,13 +213,11 @@ router.get('/user', async(req,res)=> {
 
 //         res.json({ message: "The blocked relationship was successfully created." });
 
-
 //     } catch (err) {
 
 //         res.status(400).json({ message: "Invalid request -- the blocked relationship was not successfully created. "});
 //     }
 // });
-
 
 // router.post('/friends', async(req, res) => {
 
@@ -196,7 +230,7 @@ router.get('/user', async(req,res)=> {
 //             sourceId: new ObjectId(sourceUserIdParam),
 //             targetId: new ObjectId(targetUserIdParam)
 //         });
-    
+
 //         await UserFriendMapping.create({
 //             sourceId: new ObjectId(targetUserIdParam),
 //             targetId: new ObjectId(sourceUserIdParam)
@@ -242,7 +276,7 @@ router.get('/user', async(req,res)=> {
 //         res.json(basicInfoFriendList);
 //         return;
 
-//     } catch (err) { 
+//     } catch (err) {
 
 //         res.status(400).send({ message: "Invalid input prevented any friends from being returned" });
 //         return;
@@ -250,25 +284,21 @@ router.get('/user', async(req,res)=> {
 
 // });
 
-
-router.get('/:userid', async (req, res) => {
-    let userIdParam = req.params.userid;
-    try {
-
-        retrievedUserObject = await User.findById(userIdParam);
-        if(!retrievedUserObject){
-            return res.status(400).send({status: false, message: "user not found"})
-        }
-        return res.status(400).send({status:true, data: retrievedUserObject});
-    } catch (err) { 
-
-        res.status(500).send({ status: false, message: err.message });
-        return;
+router.get("/:userid", async (req, res) => {
+  let userIdParam = req.params.userid;
+  try {
+    retrievedUserObject = await User.findById(userIdParam);
+    if (!retrievedUserObject) {
+      return res.status(400).send({ status: false, message: "user not found" });
     }
+    return res.status(400).send({ status: true, data: retrievedUserObject });
+  } catch (err) {
+    res.status(500).send({ status: false, message: err.message });
+    return;
+  }
 });
 
 // router.post('/', async (req, res) => {
-
 
 //     let firstNameParam = null;
 //     let lastNameParam = null;
@@ -298,12 +328,11 @@ router.get('/:userid', async (req, res) => {
 
 //     } catch (exception) {
 
-
 //         res.status(400).send("Invalid request -- Could not parse inputs");
 //         return;
 //     }
 
-//     // checkig the case if the user does not put in all the required parameters 
+//     // checkig the case if the user does not put in all the required parameters
 
 //     const allInputsPresent = (
 //         firstNameParam !== undefined &&
@@ -341,7 +370,7 @@ router.get('/:userid', async (req, res) => {
 //                 password: passwordParam,
 //                 role: roleParam
 //             });
-        
+
 //             await newUserObject.save();
 
 //             res.json({
@@ -375,7 +404,6 @@ router.get('/:userid', async (req, res) => {
 //         phoneNumberParam = parseInt(req.body.phoneNumber);
 //         emailParam = req.body.email;
 
-
 //         retrievedUserIdObject = await User.findOneAndUpdate(
 //             {_id: new ObjectId(userIdParam)},
 //             {
@@ -388,30 +416,27 @@ router.get('/:userid', async (req, res) => {
 //             });
 //         res.json({message: "The user was updated"});
 //         return;
-//     } catch (err) { 
+//     } catch (err) {
 //         res.status(400).send({ message: "Invalid request -- the user was not able to be updated"});
 //         return;
 //     }
 
 // });
 
-router.delete('/:userid', async (req, res) => {
+router.delete("/:userid", async (req, res) => {
+  let userIdParam = req.params.userid;
 
-    let userIdParam = req.params.userid;
+  try {
+    await User.deleteOne({ _id: new ObjectId(userIdParam) });
 
-    try {
-
-        await User.deleteOne({ _id: new ObjectId(userIdParam)});
-
-        res.json({ message: "The user was successfully deleted"});
-        return;
-
-    } catch (err) {
-
-        res.status(400).send({ message: "Invalid input prevented the user from being deleted"});
-        return;
-    }
+    res.json({ message: "The user was successfully deleted" });
+    return;
+  } catch (err) {
+    res
+      .status(400)
+      .send({ message: "Invalid input prevented the user from being deleted" });
+    return;
+  }
 });
-
 
 module.exports = router;
