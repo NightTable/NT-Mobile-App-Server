@@ -235,6 +235,26 @@ router.post("/verifyOtp", async (req, res) => {
   }
 });
 
+router.post('/getAddress', async (req, res) => {
+  try {
+    const { lat, lng } = req.body;
+    const apiKey = 'AIzaSyAEpnPGVn8_su1df9hvw1ZGGOw-V3_RimM';
+    const apiUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`;
+
+    const response = await axios.get(apiUrl);
+
+    if (response.data.status === 'OK') {
+      const results = response.data.results;
+      const formattedAddress = results[0].formatted_address;
+      res.json({ address: formattedAddress });
+    } else {
+      res.status(400).json({ error: 'Failed to retrieve address.' });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
 // router.post("/register", async (req, res) => {
 //   let firstNameParam = req.body.firstName;
 //   let lastNameParam = req.body.lastName;
