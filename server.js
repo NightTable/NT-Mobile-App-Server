@@ -38,6 +38,8 @@ const photoControllerRoutes = require("./routes/PhotoController");
 const roomControllerRoutes = require("./routes/RoomController");
 const fileUploadRoutes = require("./routes/uploadFileControllers");
 const representativeControllerRoutes = require("./routes/RepresentativeController");
+const customRoutes = require("./routes/customRoutesController");
+const paymentRoutes = require("./routes/PaymentControllers");
 const jwt = require("jsonwebtoken");
 let socketNameSpaces = ["tableReqNameSpace", "messageChatNamespace"];
 let userModel = require("./models/User");
@@ -87,6 +89,8 @@ app.use("/api/participants", participantControllerRoutes);
 // app.use("/api/rooms", roomControllerRoutes);
 app.use("/api/fileUpload", fileUploadRoutes);
 app.use("/api/representatives", representativeControllerRoutes);
+app.use("/api/customRoutes", customRoutes);
+app.use("/api/payments", paymentRoutes);
 
 configureTestInterfaceRoutes(app);
 
