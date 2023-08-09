@@ -1,9 +1,26 @@
 const express = require("express");
-const stripe = require("stripe")("YOUR_STRIPE_SECRET_KEY");
+const stripe = require("stripe")(process.env.StripeSecretKey);
 const router = express.Router();
 
 // whenever there is a payment to be made, we create an intent through this api --- capture method is manual
 // so that we can hold the payment first and complete the payment in the end
+
+router.post("/make-payment", async (req, res) => {
+  try {
+    const { amount, currency } = req.body;
+
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: amount,
+      currency: currency,
+      // capture_method: "manual", // Set capture_method to 'manual'
+    });
+
+    res.send({ clientSecret: paymentIntent.client_secret });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ error: "Something went wrong." });
+  }
+});
 
 router.post("/create-payment-intent", async (req, res) => {
   try {
