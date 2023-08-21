@@ -12,11 +12,14 @@ const TableConfiguration = require("../models/TableConfiguration");
 router.get("/tablereq/:tableReqId", async (req, res) => {
   try {
     let tableReqId = req.params.tableReqId;
-    let tableReq = await TableRequest.findOne({ _id: tableReqId, isDeleted: false}).populate(
-      "tableConfigId organizerUserId promoterId"
-    );
+    let tableReq = await TableRequest.findOne({
+      _id: tableReqId,
+      isDeleted: false,
+    }).populate("tableConfigId organizerUserId promoterId");
     if (!tableReq)
-      return res.status(200).send({ status: false, message: "Table request not found" });
+      return res
+        .status(200)
+        .send({ status: false, message: "Table request not found" });
     return res
       .status(200)
       .send({ status: true, message: "success", data: tableReq });
@@ -25,8 +28,8 @@ router.get("/tablereq/:tableReqId", async (req, res) => {
   }
 });
 
-router.post('/tableReq', async (req,res) =>{
-  try{
+router.post("/tableReq", async (req, res) => {
+  try {
     let tableReqBody = req.body;
     let tableReq = await TableRequest.create(tableReqBody);
     return res.status(201).send({
@@ -34,61 +37,71 @@ router.post('/tableReq', async (req,res) =>{
       message: "tableRequest created successfully",
       data: tableReq,
     });
-
-  }catch(error){
+  } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
-})
+});
 
-
-router.put('/tableReq/:tableReqId', async (req,res) =>{
-  try{
+router.put("/tableReq/:tableReqId", async (req, res) => {
+  try {
     let tableReqUpdateBody = req.body;
-    let {tableReqId} = req.params;
-    let tableReqUpdated = await TableRequest.findOneAndUpdate({_id:tableReqId, isDeleted: false},tableReqUpdateBody, {new:true});
-    if(!tableReqUpdated) return res.status(404).send({status:false, message:"table request not found"})
+    let { tableReqId } = req.params;
+    let tableReqUpdated = await TableRequest.findOneAndUpdate(
+      { _id: tableReqId, isDeleted: false },
+      tableReqUpdateBody,
+      { new: true }
+    );
+    if (!tableReqUpdated)
+      return res
+        .status(404)
+        .send({ status: false, message: "table request not found" });
     return res.status(201).send({
       status: true,
       message: "tableRequest updated successfully",
       data: tableReqUpdated,
     });
-
-  }catch(error){
-    return res.status(500).send({ status: false, message: error.message });
-  }
-})
-
-
-router.delete('/tableReq/:tableReqId', async (req,res) =>{
-  try{
-    let {tableReqId} = req.params;
-    let tableReqDeleted = await TableRequest.findOneAndUpdate({_id:tableReqId, isDeleted: false},{isDeleted:true}, {new:true});
-    if(!tableReqDeleted) return res.status(404).send({status:false, message:"table request not found"})
-    return res.status(201).send({
-      status: true,
-      message: "tableRequest deleted successfully",
-    });
-
-  }catch(error){
-    return res.status(500).send({ status: false, message: error.message });
-  }
-})
-
-router.get("/tablereq/:tableConfigId/:eventId", async (req, res) => {
-  try {
-    let {tableConfigId, eventId} = req.params;
-    let tableReq = await TableRequest.findOne({tableConfigId: tableConfigId, isDeleted: false,eventId:eventId }).populate(
-      "tableConfigId organizerUserId promoterId"
-    );
-    if (!tableReq)
-      return res.status(400).send({ status: false, message: "false" });
-    return res
-      .status(200)
-      .send({ status: true, message: "success", data: tableReq });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
 });
+
+router.delete("/tableReq/:tableReqId", async (req, res) => {
+  try {
+    let { tableReqId } = req.params;
+    let tableReqDeleted = await TableRequest.findOneAndUpdate(
+      { _id: tableReqId, isDeleted: false },
+      { isDeleted: true },
+      { new: true }
+    );
+    if (!tableReqDeleted)
+      return res
+        .status(404)
+        .send({ status: false, message: "table request not found" });
+    return res.status(201).send({
+      status: true,
+      message: "tableRequest deleted successfully",
+    });
+  } catch (error) {
+    return res.status(500).send({ status: false, message: error.message });
+  }
+});
+
+// router.get("/tablereq/:tableConfigId/:eventId", async (req, res) => {
+//   try {
+//     let {tableConfigId, eventId} = req.params;
+//     let tableReq = await TableRequest.findOne({tableConfigId: tableConfigId, isDeleted: false,eventId:eventId }).populate(
+//       "tableConfigId organizerUserId promoterId"
+//     );
+//     if (!tableReq)
+//       return res.status(400).send({ status: false, message: "false" });
+//     return res
+//       .status(200)
+//       .send({ status: true, message: "success", data: tableReq });
+//   } catch (error) {
+//     return res.status(500).send({ status: false, message: error.message });
+//   }
+// });
+
 // router.get("/club/:clubId", async (req, res) => {
 //   try {
 //     let clubId = req.params.clubId;
@@ -102,9 +115,6 @@ router.get("/tablereq/:tableConfigId/:eventId", async (req, res) => {
 //     return res.status(500).send({ status: false, message: error.message });
 //   }
 // });
-
-
-
 
 // router.get("/tablereq/:tablereqid", async (req, res) => {
 //   let tableRequestIdParam = req.params.tablereqid;
