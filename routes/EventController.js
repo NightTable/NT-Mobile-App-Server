@@ -37,6 +37,24 @@ router.get("/club/:clubid", async (req, res) => {
   }
 });
 
+
+// GET /api/events/event/:eventId - get the event details (date and name) via eventId
+router.get("/event/:eventId", async (req, res) => {
+  try {
+    let { eventId } = req.params;
+    let eventSchedule = await Event.findOne({ _id: eventId, isDeleted: false })
+      .select({ eventDate: 1, eventTime: 1 })
+      .lean();
+    if (!eventSchedule)
+      return res.status(200).send({ status: false, message: "no event found" });
+    return res
+      .status(200)
+      .send({ status: true, message: "success", data: eventSchedule });
+  } catch (error) {
+    return res.status(500).send({ status: false, message: error.message });
+  }
+});
+
 router.get("/club/:clubId/:eventId", async (req, res) => {
   try {
     let { clubId, eventId } = req.params;
@@ -55,22 +73,18 @@ router.get("/club/:clubId/:eventId", async (req, res) => {
         eventId: eventId,
         isDeleted: false,
       }).lean();
-      return res
-        .status(200)
-        .send({
-          status: true,
-          message: "table for event found",
-          eventData: event,
-          tableConfigForEvent: tableDetailsForTheEvent,
-        });
-    }
-    return res
-      .status(200)
-      .send({
+      return res.status(200).send({
         status: true,
-        message: "event found but no table config added",
-        data: event,
+        message: "table for event found",
+        eventData: event,
+        tableConfigForEvent: tableDetailsForTheEvent,
       });
+    }
+    return res.status(200).send({
+      status: true,
+      message: "event found but no table config added",
+      data: event,
+    });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }

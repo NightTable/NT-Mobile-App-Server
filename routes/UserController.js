@@ -6,6 +6,7 @@ const UserBlockedFriendMapping = require("../models/UserBlockedFriendMapping");
 const ObjectId = require("mongodb").ObjectId;
 const url = require("url");
 const { send } = require("process");
+const representativeCollection = require('../models/Representative');
 
 //api to add full details of user once he wants to access the table
 router.put("/user", async (req, res) => {
@@ -287,7 +288,7 @@ router.get("/user", async (req, res) => {
 router.get("/:userid", async (req, res) => {
   let userIdParam = req.params.userid;
   try {
-    retrievedUserObject = await User.findById(userIdParam);
+    let retrievedUserObject = await User.findById(userIdParam);
     if (!retrievedUserObject) {
       return res.status(400).send({ status: false, message: "user not found" });
     }
@@ -297,6 +298,22 @@ router.get("/:userid", async (req, res) => {
     return;
   }
 });
+
+router.get('/:id', async(req,res)=>{
+  try{
+    let id = req.params.id;
+    let checkInRepresentative = await representativeCollection.findOne({_id:id, isDeleted:false}).lean();
+    if(!checkInRepresentative){
+      let checkInUsers = await User.findOne({_id:id, isDeleted:false}).lean();
+      if(!checkInUsers) return res.status(200).send({status:false, message:"no User"});
+      return res.status(200).send({status:true, message:'user found', data: checkInUsers});
+    }
+    return res.status(200).send({status:true, message: 'representative found', data: checkInRepresentative})
+  }catch (err) {
+    res.status(500).send({ status: false, message: err.message });
+    return;
+  }
+})
 
 // router.post('/', async (req, res) => {
 

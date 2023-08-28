@@ -4,6 +4,7 @@ const ObjectId = require("mongodb").ObjectId;
 const TableRequest = require("../models/TableRequest");
 // const TableRequestParticipantMapping = require("../models/TableRequestParticipantMapping");
 const TableConfiguration = require("../models/TableConfiguration");
+const Club = require("../models/Club");
 // const Participant = require("../models/Participant");
 // const User = require("../models/User");
 // const Room = require("../models/Room");
@@ -611,5 +612,51 @@ router.delete("/tableReq/:tableReqId", async (req, res) => {
 //     return;
 //   }
 // });
+
+// GET /api/clubs/:clubId - get the club at which the table request is being made at via clubId, get the name of the club
+router.get("/clubs/:clubId", async (req, res) => {
+  try{
+  let { clubId } = req.params;
+  let club = await Club.findOne({ _id: clubId, isDeleted: false }).lean();
+  if (!club)
+    return res.status(200).send({ status: false, message: "club not found" });
+  return res
+    .status(200)
+    .send({ status: true, message: "club found", data: club });
+  }catch(error){
+    return res.status(500).send({status:false, message:'server error'})
+  }
+});
+  // GET /api/events/event/:eventId - get the event details (date and name) via eventId
+        //DONE IN EVENT CONTROLLER
+// GET /api/users/:userId - get the user object that’s creating the reques via userIdt, get the user’s name, check whether he’s a promoter/host/club representative
+  // in user controller
+
+// GET /api/clubs/floorplan/:clubId - get the floorplan of the club via clubId
+router.get("/floorPlan/:clubId", async (req, res) => {
+  try {
+    let clubId = req.params.clubId;
+    let club = await Club
+      .findOne({ _id: clubId, isDeleted: false })
+      .lean();
+    if (!club)
+      return res.status(200).send({ status: false, message: "no club found" });
+    return res
+      .status(200)
+      .send({ status: true, message: "club found", floorplan: club.floorPlan });
+  } catch (error) {
+    return res.status(500).send({ status: false, message: error.message });
+  }
+});
+// GET /api/tableconfigurations/tableconfiguration/:eventId - get the tables that aren’t bought out for an event
+        //in table config controllers
+// GET /api/representative/tablemins/:representativeId - get the value of whether mobileAppTableMinimumPrivileges is true or false
+// GET /api/users/tablemins/:userId - get a boolean value telling you whether this user can change table minimums
+      // in custom routes
+// POST /api/clubs/timings/:clubId - get the operating hours of the club
+      //there is no operating hours of the club
+// An endpoint to get invitees via inhouse (people who are friend with the organizer or promoter), number, and email and add to the list of invited participants
+      // need to discuss
+
 
 module.exports = router;

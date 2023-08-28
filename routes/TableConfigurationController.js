@@ -3,6 +3,7 @@ const express = require("express");
 const router = express.Router();
 const TableConfiguration = require("../models/TableConfiguration");
 const Event = require("../models/Event");
+const TableRequestCollection = require("../models/TableRequest");
 
 router.get("/club/:clubId", async (req, res) => {
   try {
@@ -12,7 +13,9 @@ router.get("/club/:clubId", async (req, res) => {
       isDeleted: false,
     }).lean();
     if (!clubs.length)
-      return res.status(200).send({ status: false, message: "no table config found" });
+      return res
+        .status(200)
+        .send({ status: false, message: "no table config found" });
     return res
       .status(200)
       .send({ status: true, message: "success", data: clubs });
@@ -119,6 +122,37 @@ router.delete("/:tableconfigId", async (req, res) => {
     return res.status(500).send({
       message: error.message,
     });
+  }
+});
+
+//get table configurations with no active table requests
+router.get("/tableConfigurations/:eventId", async (req, res) => {
+  try {
+    let eventId = req.params.eventId;
+    let boughtOutTableConfigs = await TableRequestCollection
+      .find({ eventId: eventId, isActive: true, isDeleted: false })
+      .select({ _id: 0, tableConfigId: 1 })
+      .lean();
+
+    let tablesStillNotBoughtOut =
+      await TableConfiguration
+        .find({
+          _id: { $nin: boughtOutTableConfigs },
+          eventId:eventId,
+          isDeleted: false,
+        })
+        .lean();
+    if (!tablesStillNotBoughtOut.length)
+      return res
+        .status(200)
+        .send({ status: false, message: "table config not found" });
+    return res.status(200).send({
+      status: true,
+      message: "table configs found",
+      data: tablesStillNotBoughtOut,
+    });
+  } catch (error) {
+    return res.status(500).send({ status: false, message: error.message });
   }
 });
 
