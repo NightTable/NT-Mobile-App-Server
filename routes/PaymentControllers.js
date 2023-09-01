@@ -16,7 +16,7 @@ router.post("/make-payment", async (req, res) => {
       amount: amount * 100,
       currency: "USD",
       confirm: true,
-      description: `${req.body.customerId}, ${req.body.club}, ${req.body.event}`,
+      //description: `${req.body.customerId}, ${req.body.club}, ${req.body.event}`,
       capture_method: automatic_async
     });
     const capturedIntent = await stripe.paymentIntents.capture(paymentIntent.id);
