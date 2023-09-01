@@ -7,6 +7,25 @@ const router = express.Router();
 
 router.post("/make-payment", async (req, res) => {
   try {
+    const lineItems = req.body.lineItems;
+    let amount = req.body.amount;
+    let nightTableFee = 28;
+    const totalFee = lineItems.reduce((acc, val) => acc + val, 0) + nightTableFee;
+    amount = amount * (1 + (totalFee / 100));
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: amount * 100,
+      currency: "USD",
+      confirm: true,
+      description: `${req.body.customerId}, ${req.body.club}, ${req.body.event}`,
+      capture_method: automatic_async
+    });
+    const capturedIntent = await stripe.paymentIntents.capture(paymentIntent.id);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ error: "Something went wrong." });
+  }
+  /*try {
     const { amount, currency } = req.body;
 
     const paymentIntent = await stripe.paymentIntents.create({
@@ -19,7 +38,7 @@ router.post("/make-payment", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).send({ error: "Something went wrong." });
-  }
+  }*/
 });
 
 router.post("/create-payment-intent", async (req, res) => {
