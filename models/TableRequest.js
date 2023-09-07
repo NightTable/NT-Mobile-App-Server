@@ -5,10 +5,10 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const tableRequestSchema = new Schema({
-    name: {
+    /*name: {
         type: String,
         required: true
-    },
+    },*/
     tableConfigId: [{
         type: Schema.Types.ObjectId,
         ref: 'TableConfiguration',
