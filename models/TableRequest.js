@@ -9,11 +9,11 @@ const tableRequestSchema = new Schema({
         type: String,
         required: true
     },
-    tableConfigId: {
+    tableConfigId: [{
         type: Schema.Types.ObjectId,
         ref: 'TableConfiguration',
         required: true
-    },
+    }],
     customMinimum: {
         type:Number,
         required: true

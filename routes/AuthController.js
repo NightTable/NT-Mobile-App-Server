@@ -159,7 +159,7 @@ router.post("/generateOTP", async (req, res) => {
   }
 });
 
-router.post("/verifyOtp", async (req, res) => {
+router.post("/verifyOtp", async (req, res) => { 
   try {
     let { reqPhoneNumber, reqOtp } = req.body;
     if (!reqPhoneNumber) {
