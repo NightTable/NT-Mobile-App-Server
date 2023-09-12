@@ -60,6 +60,7 @@ router.post("/create-payment-intent", async (req, res) => {
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amount,
       currency: "USD",
+      confirm: (cpMethod === 'manual' ? false : true),
       confirmation_method: "automatic",
       capture_method: cpMethod,
       payment_method_types: ['card'],
@@ -91,10 +92,10 @@ router.post("/capture-payment-intent", async (req, res) => {
   try {
     const paymentIntentId = req.body.paymentIntentId;
     const paymentIntent = await stripe.paymentIntents.capture(paymentIntentId);
-    res.status(200).send({ status: paymentIntent.status });
+    res.status(200).send({ paymentIntent: paymentIntent.id, status: paymentIntent.status });
   } catch (error) {
     console.log(error);
-    res.status(500).send({ error: "Something went wrong." });
+    res.status(500).send({ error: "Something went wrong.", paymentIntent: paymentIntentId });
   }
 });
 
