@@ -95,7 +95,7 @@ router.post("/capture-payment-intent", async (req, res) => {
     res.status(200).send({ paymentIntent: paymentIntent.id, status: paymentIntent.status });
   } catch (error) {
     console.log(error);
-    res.status(500).send({ error: "Something went wrong.", paymentIntent: paymentIntentId });
+    res.status(500).send({ error: "Something went wrong.", paymentIntent: paymentIntent.id });
   }
 });
 
