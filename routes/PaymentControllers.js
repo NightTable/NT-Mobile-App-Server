@@ -22,7 +22,7 @@ router.post("/create-customer", async (req, res) => {
     });
     res.status(200).send(customerInternal);
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     res.status(500).send({ error: error.message });
   }
 });
