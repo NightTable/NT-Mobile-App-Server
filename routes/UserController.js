@@ -6,13 +6,15 @@ const UserBlockedFriendMapping = require("../models/UserBlockedFriendMapping");
 const ObjectId = require("mongodb").ObjectId;
 const url = require("url");
 const { send } = require("process");
-const representativeCollection = require('../models/Representative');
+const representativeCollection = require("../models/Representative");
 
 //api to add full details of user once he wants to access the table
 router.put("/user", async (req, res) => {
   let { phoneNumber } = req.body;
   if (!phoneNumber)
-    return res.status(400).send({ status: false, message: "phone number is required" }); // need to add proper phone number validation
+    return res
+      .status(400)
+      .send({ status: false, message: "phone number is required" }); // need to add proper phone number validation
 
   let {
     firstName,
@@ -28,40 +30,67 @@ router.put("/user", async (req, res) => {
 
   //checking if the required values are there or not
   if (!firstName)
-    return res.status(400).send({ status: false, message: "firstName required" });
+    return res
+      .status(400)
+      .send({ status: false, message: "firstName required" });
   if (!lastName)
-    return res.status(400).send({ status: false, message: "last Name required" });
+    return res
+      .status(400)
+      .send({ status: false, message: "last Name required" });
   if (!userName)
-    return res.status(400).send({ status: false, message: "userName required" });
+    return res
+      .status(400)
+      .send({ status: false, message: "userName required" });
   if (!profilePhoto)
-    return res.status(400).send({ status: false, message: "profile photo required" });
+    return res
+      .status(400)
+      .send({ status: false, message: "profile photo required" });
   if (!gender)
     return res.status(400).send({ status: false, message: "gender required" });
-  if (!email) return res.status(400).send({ status: false, message: "email required" });
+  if (!email)
+    return res.status(400).send({ status: false, message: "email required" });
   if (!isProfileSetup)
-    return res.status(400).send({ status: false, message: "is profile setup required" });
+    return res
+      .status(400)
+      .send({ status: false, message: "is profile setup required" });
   if (!facebookEmail)
-    return res.status(400).send({ status: false, message: "facebook email required" });
+    return res
+      .status(400)
+      .send({ status: false, message: "facebook email required" });
   if (!instaHandle)
-    return res.status(400).send({ status: false, message: "insta handle required" });
+    return res
+      .status(400)
+      .send({ status: false, message: "insta handle required" });
 
   //checking if they are not empty spaces
   if (!firstName.trim())
-    return res.status(400).send({ status: false, message: "first name required" });
+    return res
+      .status(400)
+      .send({ status: false, message: "first name required" });
   if (!lastName.trim())
-    return res.status(400).send({ status: false, message: "last name required" });
+    return res
+      .status(400)
+      .send({ status: false, message: "last name required" });
   if (!userName.trim())
-    return res.status(400).send({ status: false, message: "user name required" });
+    return res
+      .status(400)
+      .send({ status: false, message: "user name required" });
   if (!profilePhoto.trim())
-    return res.status(400).send({ status: false, message: "profile phote required" });
+    return res
+      .status(400)
+      .send({ status: false, message: "profile phote required" });
   if (!gender.trim())
     return res.status(400).send({ status: false, message: "gender required" });
   if (!email.trim())
     return res.status(400).send({ status: false, message: "email required" });
   if (!facebookEmail.trim())
-    return res.status(400).send({ status: false, message: "face book email required" });
+    return res
+      .status(400)
+      .send({ status: false, message: "face book email required" });
   if (!instaHandle.trim())
-    return res.status(400).send({ status: false, message: "insta handle required" });
+    return res
+      .status(400)
+      .send({ status: false, message: "insta handle required" });
 
   let updatedUser = await User.findOneAndUpdate(
     { phoneNumber: phoneNumber },
@@ -79,7 +108,7 @@ router.put("/user", async (req, res) => {
     .send({ status: true, message: "success", data: updatedUser });
 });
 
-router.get("/user", async (req, res) => {
+router.post("/user", async (req, res) => {
   try {
     let phoneNumber = req.body.phoneNumber;
     let user = await User.findOne({
@@ -299,21 +328,35 @@ router.get("/:userid", async (req, res) => {
   }
 });
 
-router.get('/:id', async(req,res)=>{
-  try{
+router.get("/:id", async (req, res) => {
+  try {
     let id = req.params.id;
-    let checkInRepresentative = await representativeCollection.findOne({_id:id, isDeleted:false}).lean();
-    if(!checkInRepresentative){
-      let checkInUsers = await User.findOne({_id:id, isDeleted:false}).lean();
-      if(!checkInUsers) return res.status(200).send({status:false, message:"no User"});
-      return res.status(200).send({status:true, message:'user found', data: checkInUsers});
+    let checkInRepresentative = await representativeCollection
+      .findOne({ _id: id, isDeleted: false })
+      .lean();
+    if (!checkInRepresentative) {
+      let checkInUsers = await User.findOne({
+        _id: id,
+        isDeleted: false,
+      }).lean();
+      if (!checkInUsers)
+        return res.status(200).send({ status: false, message: "no User" });
+      return res
+        .status(200)
+        .send({ status: true, message: "user found", data: checkInUsers });
     }
-    return res.status(200).send({status:true, message: 'representative found', data: checkInRepresentative})
-  }catch (err) {
+    return res
+      .status(200)
+      .send({
+        status: true,
+        message: "representative found",
+        data: checkInRepresentative,
+      });
+  } catch (err) {
     res.status(500).send({ status: false, message: err.message });
     return;
   }
-})
+});
 
 // router.post('/', async (req, res) => {
 
