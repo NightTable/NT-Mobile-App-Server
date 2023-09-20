@@ -10,7 +10,7 @@ const inviteSchema = new Schema({
     },
     tableRequestId:{
         type: Schema.Types.ObjectId,
-        ref: 'User',
+        ref: 'TableRequest',
         required: [true, "tableRequestId is required"],
     },
     joiningFee: {

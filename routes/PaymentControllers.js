@@ -99,6 +99,17 @@ router.post("/capture-payment-intent", async (req, res) => {
   }
 });
 
+router.post("/confirm-payment-intent", async (req, res) => {
+  try {
+    const paymentIntentId = req.body.paymentIntentId;
+    const paymentIntent = await stripe.paymentIntents.capture(paymentIntentId);
+    res.status(200).send({ paymentIntent: paymentIntent.id, status: paymentIntent.status });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ error: "Something went wrong.", paymentIntent: paymentIntent.id });
+  }
+});
+
 // Get Stripe Customer by internal id or stripe id
 router.get("/get-stripe-customer/:id", async (req, res) => {
   try {
