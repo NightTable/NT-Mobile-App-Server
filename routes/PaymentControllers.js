@@ -7,7 +7,6 @@ const Club = require('../models/Club')
 
 // whenever there is a payment to be made, we create an intent through this api --- capture method is manual
 // so that we can hold the payment first and complete the payment in the end
-
 // Creating a customer internally and in stripe
 router.post("/create-customer", async (req, res) => {
   try {
@@ -107,6 +106,38 @@ router.post("/confirm-payment-intent", async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).send({ error: "Something went wrong.", paymentIntent: paymentIntent.id });
+  }
+});
+
+//refund a charge, used for pnsl
+router.post("/create-refund", async (req, res) => {
+  try {
+    const chargeId = req.body.chargeId;
+
+    const amountToRefund = req.body.amountToRefund;
+
+    const charge = await stripe.charges.retrieve(
+      chargeId
+    );
+
+    let refund;
+
+    if (charge.amount_captured - charge.amount_refunded < amountToRefund){
+      refund = await stripe.refunds.create({
+        charge: chargeId,
+      });
+    }
+    else{
+      refund = await stripe.refunds.create({
+        charge: chargeId,
+        amount: amountToRefund
+      });
+    }
+
+    return res.status(200).send(refund);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({error: "could not initiate refund"});
   }
 });
 
@@ -302,7 +333,6 @@ router.patch("/update-payment-intent/:id", async (req, res) => {
     return res.status(500).send({ error: "Unable to update payment intent" });
   }
 });
-
 
 
 module.exports = router;
