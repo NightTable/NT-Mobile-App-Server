@@ -2,11 +2,12 @@ const express = require("express");
 const stripe = require("stripe")(process.env.liveTestKeyStripe);
 const router = express.Router();
 const Customer = require("../models/Customer");
+const Club = require('../models/Club')
 
 
 // whenever there is a payment to be made, we create an intent through this api --- capture method is manual
 // so that we can hold the payment first and complete the payment in the end
-
+// Creating a customer internally and in stripe
 router.post("/create-customer", async (req, res) => {
   try {
     const userId = req.body.userId;
@@ -20,17 +21,16 @@ router.post("/create-customer", async (req, res) => {
       paymentMethodId: paymentMethodId,
       paymentIntentIds: []
     });
-    res.status(200).send(customerInternal);
+    return res.status(200).send(customerInternal);
   } catch (error) {
-    // console.log(error);
-    res.status(500).send({ error: error.message });
+    console.log(error);
+    return res.status(500).send({ error: "Something went wrong." });
   }
 });
 
 // Create Payment Intent
 router.post("/create-payment-intent", async (req, res) => {
   try {
-    // Your existing code for getting request parameters
     const lineItems = req.body.lineItems;
     const paymentType = req.body.paymentType;
     const paymentMethodId = req.body.paymentMethodId;
@@ -40,31 +40,26 @@ router.post("/create-payment-intent", async (req, res) => {
     const totalFee = lineItems.reduce((acc, val) => acc + val, 0) + nightTableFee;
     amount = Math.floor(amount * (1 + (totalFee / 100)) * 100);
 
-    // Fetch internal customer data from your database
     const customerInternal = await Customer.findOne({ stripeCustomerId: customerId });
 
-    // Check if customerInternal exists in the database
     if (!customerInternal) {
       return res.status(404).send({ error: "Customer not found" });
     }
 
-    // Determine the capture method, default is "automatic"
     let cpMethod = "automatic";
 
-    // Override capture method if paymentType is "snpl"
     if (paymentType === "snpl") {
       cpMethod = "manual";
     }
 
-    // Override capture method if paymentType is "add-on" or "pnsl"
     if (["add-on", "pnsl"].includes(paymentType)) {
       cpMethod = "automatic";
     }
 
-    // Create a new PaymentIntent
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amount,
       currency: "USD",
+      confirm: (cpMethod === 'manual' ? false : true),
       confirmation_method: "automatic",
       capture_method: cpMethod,
       payment_method_types: ['card'],
@@ -72,27 +67,21 @@ router.post("/create-payment-intent", async (req, res) => {
       customer: customerId
     });
 
-    // Ensure that paymentIntentIds is an array before pushing new ids
     if (!Array.isArray(customerInternal.paymentIntentIds)) {
       customerInternal.paymentIntentIds = [];
     }
 
-    // Add the new PaymentIntent id to customerInternal's paymentIntentIds array
     customerInternal.paymentIntentIds.push(paymentIntent.id);
 
-    // Save the updated customerInternal
     await customerInternal.save();
 
-    // Prepare and send the response
     const clientSecret = paymentIntent.client_secret;
     return res.json({
       paymentIntent: paymentIntent,
       clientSecret: clientSecret
     });
   } catch (error) {
-    // Handle errors
-    // console.error(error);
-    res.status(500).send({ error: error.message });
+    return res.status(500).send({ error: "Something went wrong." });
   }
 });
 
@@ -102,55 +91,249 @@ router.post("/capture-payment-intent", async (req, res) => {
   try {
     const paymentIntentId = req.body.paymentIntentId;
     const paymentIntent = await stripe.paymentIntents.capture(paymentIntentId);
-    res.status(200).send({ status: paymentIntent.status });
+    res.status(200).send({ paymentIntent: paymentIntent.id, status: paymentIntent.status });
   } catch (error) {
-    // console.log(error);
-    res.status(500).send({ error: error.message });
+    console.log(error);
+    res.status(500).send({ error: "Something went wrong.", paymentIntent: paymentIntent.id });
+  }
+});
+
+router.post("/confirm-payment-intent", async (req, res) => {
+  try {
+    const paymentIntentId = req.body.paymentIntentId;
+    const paymentIntent = await stripe.paymentIntents.capture(paymentIntentId);
+    res.status(200).send({ paymentIntent: paymentIntent.id, status: paymentIntent.status });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ error: "Something went wrong.", paymentIntent: paymentIntent.id });
+  }
+});
+
+//refund a charge, used for pnsl
+router.post("/create-refund", async (req, res) => {
+  try {
+    const chargeId = req.body.chargeId;
+
+    const amountToRefund = req.body.amountToRefund;
+
+    const charge = await stripe.charges.retrieve(
+      chargeId
+    );
+
+    let refund;
+
+    if (charge.amount_captured - charge.amount_refunded < amountToRefund){
+      refund = await stripe.refunds.create({
+        charge: chargeId,
+      });
+    }
+    else{
+      refund = await stripe.refunds.create({
+        charge: chargeId,
+        amount: amountToRefund
+      });
+    }
+
+    return res.status(200).send(refund);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({error: "could not initiate refund"});
+  }
+});
+
+// Get Stripe Customer by internal id or stripe id
+router.get("/get-stripe-customer/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    let stripeCustomerId;
+
+    // Check if the ID starts with "cus_" to identify it as a Stripe customer ID
+    if (id.startsWith("cus_")) {
+      stripeCustomerId = id;
+    } else {
+      // Assume it's an internal customer object ID
+      const customerInternal = await Customer.findById(id);
+      if (!customerInternal) {
+        return res.status(404).send({ error: "No such customer found." });
+      }
+      stripeCustomerId = customerInternal.stripeCustomerId;
+    }
+
+    // Retrieve Stripe customer
+    const customer = await stripe.customers.retrieve(stripeCustomerId);
+    return res.status(200).send(customer);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ error: "An error occurred while retrieving the customer." });
+  }
+});
+
+// get a payment intent with a given payment intent id
+router.get("/paymentIntent/:id", async (req, res) => {
+  try {
+    const paymentIntentId = req.params.id;
+    const paymentIntent = await stripe.paymentIntents.retrieve(
+      paymentIntentId
+    );
+
+    if (!paymentIntent){
+      return res.status(404).send({ error: "No such payment intent found." });
+    }
+    return res.status(200).send(paymentIntent);
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ error: "Could not retrieve payment intent with given id" });
+  }
+});
+
+// Get internal customer by either stripe id or internal customer object id
+router.get("/internal-customer/:customerId", async (req, res) => {
+  try {
+    const customerId = req.params.customerId;
+    let customerInternal = null;
+
+    if (customerId.startsWith("cus_")) {
+      // This is a Stripe customer ID
+      customerInternal = await Customer.findOne({ stripeCustomerId: customerId });
+    } else {
+      // This is an internal ID
+      customerInternal = await Customer.findById(customerId);
+    }
+
+    if (!customerInternal) {
+      return res.status(404).send({ error: "Customer not found." });
+    }
+    return res.status(200).send(customerInternal);
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ error: "Could not find customer with the given id." });
+  }
+});
+
+// Get payment method by payment method id
+router.get("/paymentMethod/:id", async (req, res) => {
+  try {
+    const pmId = req.params.id;
+    const paymentMethod = await stripe.paymentMethods.retrieve(
+      pmId
+    );
+    if (!paymentMethod) {
+      return res.status(404).send({ error: "Payment method not found." });
+    }
+    return res.status(200).send(paymentMethod);
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ error: "Could not find payment method with the given id." });
+  }
+});
+
+// Get all card objects of customer
+router.get("/customer-cards/:id", async (req, res) => {
+  try {
+    const customerId = req.params.customerId;
+    let cards;
+
+    if (customerId.startsWith("cus_")) {
+      // This is a Stripe customer ID
+      cards = await stripe.customers.listSources(
+        customerId,
+        {object: 'card', limit: 100}
+      );
+    } else {
+      // This is an internal ID
+      const customerInternal = await Customer.findById(customerId);
+      if (!customerInternal) {
+        return res.status(404).send({ error: "Card not found." });
+      }
+      cards = await stripe.customers.listSources(
+        customerInternal.stripeCustomerId,
+        {object: 'card', limit: 100}
+      );
+    }
+
+    if (!cards) {
+      return res.status(404).send({ error: "Card not found." });
+    }
+
+    return res.status(200).send(cards);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ error: "Could not find card with the given id." });
   }
 });
 
 // Update Internal Customer
 router.patch("/update-internalCustomer/:id", async (req, res) => {
   try {
-    const internalCustomerId = req.params.id;
-    console.log("Internal Customer ID: ", internalCustomerId);
-    
+    const internalCustomerId = req.params.id;    
     const updatedDetails = req.body;
-    console.log("Updated Details: ", updatedDetails);
-
     const resultCustomer = await Customer.updateOne(
       {_id: internalCustomerId},
       {$set: updatedDetails}
     );
 
-    console.log("Update Result: ", resultCustomer);  // Add this line
-
     if (resultCustomer.matchedCount === 0){
       return res.status(400).send({ message: 'Customer not found' });
     }
+
     else {
       const updatedCustomer = await Customer.findOne({ _id: internalCustomerId });
+      if (!updatedCustomer){
+        return res.status(400).send({ message: 'Customer not found' });
+      }
       return res.json(updatedCustomer);    
     }
+
   } catch (error) {
-    // console.log("Error: ", error);
-    res.status(500).send({ error: error.message });
+    return res.status(500).send({ error: "Something went wrong." });
   }
 });
 
-// Get Stripe Customer
-router.get("/get-stripe-customer/:id", async (req, res) => {
+// Update payment intent. This endpoint is used when user is in polling room screen,
+// and instead of contributing 500, they want to contribute 600
+// or some amount that's >= the minimum required joining price
+router.patch("/update-payment-intent/:id", async (req, res) => {
   try {
-    const stripeCustomerId = req.params.id;
-    const customer = await stripe.customers.retrieve(
-      stripeCustomerId
-    );
-    return res.status(200).send(customer);
+    const customer = await Customer.findOne({ _id: req.params.id });
+    const newFee = req.body.newFee; 
+    const oldFee = req.body.joiningFee;
+    const lineItems = req.body.lineItems;
+    let nightTableFee = 28;
+
+    if (!customer){
+      return res.status(500).send({error: "No such customer found"})
+    }
+
+    if (newFee < oldFee){
+      return res.status(500).send({error: "Your contribution must be more than or equal to the current joining fee"})
+    }
+
+    if (customer.paymentIntentIds.length > 1){
+      return res.status(500).send({error: "Payment has already been made to join the table"})
+    }
+    else{
+      const charges = lineItems.reduce((acc, val) => acc + val, 0) + nightTableFee;
+      let amount = Math.floor(newFee * (1 + (charges / 100)) * 100);
+      const paymentIntent = customer.paymentIntentIds[0];
+      const newPaymentIntent = await stripe.paymentIntents.update(
+        paymentIntent,
+        {amount: amount}
+      );
+      if (!paymentIntent){
+        return res.status(500).send({error: "Unable to update payment intent"})
+      }
+      return newPaymentIntent;
+    }
+
   } catch (error) {
-    // console.log(error);
-    res.status(500).send({ error: error.message });
+    console.log(error);
+    return res.status(500).send({ error: "Unable to update payment intent" });
   }
 });
+
 
 module.exports = router;
 
@@ -159,6 +342,11 @@ module.exports = router;
   Please check whether a payment method can be used more than once
   to create more payment intents. Write / modify code accordingly
 */
+
+
+
+
+
 
 
 
