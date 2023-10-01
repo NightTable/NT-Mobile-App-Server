@@ -88,37 +88,37 @@ router.get("/floorPlan/:clubId", async (req, res) => {
   }
 });
 // GET /api/tableconfigurations/tableconfiguration/:eventId - get the tables that aren’t bought out for an event
-router.get("/tableConfigurations/:eventId", async (req, res) => {
-  try {
-    let eventId = req.params.eventId;
-    let configOfNotActiveTableRequests = await tableRequestsCollection
-      .find({ eventId: eventId, isActive: false, isDeleted: false })
-      .select({ _id: 0, tableConfigId: 1 })
-      .lean();
-    if (!configOfNotActiveTableRequests.length)
-      return res
-        .status(200)
-        .send({ status: false, message: "no such tableconfig" });
-    let tableConfigsWithNoActiveTableRequests =
-      await tableConfigurationsCollection
-        .find({
-          _id: { $in: configOfNotActiveTableRequests },
-          isDeleted: false,
-        })
-        .lean();
-    if (!tableConfigsWithNoActiveTableRequests)
-      return res
-        .status(200)
-        .send({ status: false, message: "table config not found" });
-    return res.status(200).send({
-      status: true,
-      message: "table configs found",
-      data: tableConfigsWithNoActiveTableRequests,
-    });
-  } catch (error) {
-    return res.status(500).send({ status: false, message: error.message });
-  }
-});
+// router.get("/tableConfigurations/:eventId", async (req, res) => {
+//   try {
+//     let eventId = req.params.eventId;
+//     let configOfNotActiveTableRequests = await tableRequestsCollection
+//       .find({ eventId: eventId, isActive: false, isDeleted: false })
+//       .select({ _id: 0, tableConfigId: 1 })
+//       .lean();
+//     if (!configOfNotActiveTableRequests.length)
+//       return res
+//         .status(200)
+//         .send({ status: false, message: "no such tableconfig" });
+//     let tableConfigsWithNoActiveTableRequests =
+//       await tableConfigurationsCollection
+//         .find({
+//           _id: { $in: configOfNotActiveTableRequests },
+//           isDeleted: false,
+//         })
+//         .lean();
+//     if (!tableConfigsWithNoActiveTableRequests.length)
+//       return res
+//         .status(200)
+//         .send({ status: false, message: "table config not found" });
+//     return res.status(200).send({
+//       status: true,
+//       message: "table configs found",
+//       data: tableConfigsWithNoActiveTableRequests,
+//     });
+//   } catch (error) {
+//     return res.status(500).send({ status: false, message: error.message });
+//   }
+// });
 
 // GET /api/users/tablemins/:userId - get a boolean value telling you whether this user can change table minimums
 router.get("/tablemins/:representativeId", async (req, res) => {

@@ -129,27 +129,33 @@ router.delete("/:tableconfigId", async (req, res) => {
 router.get("/tableConfigurations/:eventId", async (req, res) => {
   try {
     let eventId = req.params.eventId;
-    let boughtOutTableConfigs = await TableRequestCollection
-      .find({ eventId: eventId, isActive: true, isDeleted: false })
+    let configOfNotActiveTableRequests = await TableRequestCollection.find({
+      eventId: eventId,
+      isActive: false,
+      isDeleted: false,
+    })
       .select({ _id: 0, tableConfigId: 1 })
       .lean();
+    if (!configOfNotActiveTableRequests.length)
+      return res
+        .status(200)
+        .send({ status: false, message: "no tableconfigs available" });
 
-    let tablesStillNotBoughtOut =
-      await TableConfiguration
+    let tableConfigsWithNoActiveTableRequests =
+      await tableConfigurationsCollection
         .find({
-          _id: { $nin: boughtOutTableConfigs },
-          eventId:eventId,
+          _id: { $in: configOfNotActiveTableRequests },
           isDeleted: false,
         })
         .lean();
-    if (!tablesStillNotBoughtOut.length)
+    if (!tableConfigsWithNoActiveTableRequests.length)
       return res
         .status(200)
         .send({ status: false, message: "table config not found" });
     return res.status(200).send({
       status: true,
       message: "table configs found",
-      data: tablesStillNotBoughtOut,
+      data: tableConfigsWithNoActiveTableRequests,
     });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
