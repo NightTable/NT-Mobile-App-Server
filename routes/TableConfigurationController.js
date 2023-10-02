@@ -142,7 +142,7 @@ router.get("/tableConfigurations/:eventId", async (req, res) => {
         .send({ status: false, message: "no tableconfigs available" });
 
     let tableConfigsWithNoActiveTableRequests =
-      await tableConfigurationsCollection
+      await TableConfiguration
         .find({
           _id: { $in: configOfNotActiveTableRequests },
           isDeleted: false,
