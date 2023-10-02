@@ -24,7 +24,7 @@ const inviteSchema = new Schema({
     invitee: {
         type: String,
         required: true
-        //phone number of either an external new user or internal
+        //phone number of external user
     },
     isAccepted: {
         type: Boolean,
