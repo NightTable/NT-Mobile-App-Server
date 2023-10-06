@@ -40,10 +40,12 @@ const fileUploadRoutes = require("./routes/uploadFileControllers");
 const representativeControllerRoutes = require("./routes/RepresentativeController");
 const customRoutes = require("./routes/customRoutesController");
 const paymentRoutes = require("./routes/PaymentControllers");
+const inviteRoutes = require("./routes/InviteController");
 const jwt = require("jsonwebtoken");
 let socketNameSpaces = ["tableReqNameSpace", "messageChatNamespace"];
 let userModel = require("./models/User");
 let representativeModel = require("./models/Representative");
+
 // comment to trigger build
 
 require("dotenv").config();
@@ -77,7 +79,6 @@ app.use("/api/util", utilControllerRoutes);
 app.use("/api/clubs", clubControllerRoutes);
 app.use("/api/tableconfigurations", tableConfigurationControllerRoutes);
 app.use("/api/tablerequests", tableRequestControllerRoutes);
-// app.use("/api/events", eventControllerRoutes);
 app.use("/api/menu", menuControllerRoutes);
 app.use("/api/users", userControllerRoutes);
 app.use("/api/events", eventControllerRoutes);
@@ -91,6 +92,7 @@ app.use("/api/fileUpload", fileUploadRoutes);
 app.use("/api/representatives", representativeControllerRoutes);
 app.use("/api/customRoutes", customRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/invites", inviteRoutes);
 
 configureTestInterfaceRoutes(app);
 
