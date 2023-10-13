@@ -2,26 +2,29 @@ const express = require("express");
 const router = express.Router();
 const Invite = require("../models/Invite");
 const User = require("../models/User");
+const axios = require('axios');
 
 const { ObjectId } = require("mongodb");
 
-//call this endpoint when inviting a new user
+//call this endpoint when inviting a new or existing user. Invite done via phone number
 router.post("/sendExternalInvite", async (req, res) => {
   const organizerId = req.body.organizerId;
   const phoneNumber = req.body.phoneNumber;
-  const tableReqId = req.body.tableReqId;
+  const tableRequestId = req.body.tableRequestId;
   const joiningFee = req.body.joiningFee;
 
   try {
     // Find existing unaccepted invites that haven't been deleted by the user
     const invites = await Invite.find({
       invitee: phoneNumber,
-      tableReqId: tableReqId,
+      tableRequestId: tableRequestId,
       joiningFee: joiningFee,
       organizerId: organizerId,
       isAccepted: false,
       isDeleted: false,
     });
+
+    let message = '';
 
     // Check if invites array is not empty
     if (invites.length > 0) {
@@ -30,29 +33,30 @@ router.post("/sendExternalInvite", async (req, res) => {
         invite.isDeleted = true;
         await invite.save();
       }
-      res.status(200).json({ message: "Existing invites marked as deleted" });
-    } else {
-      // Create a new invite if none are found
-      const newInvite = new Invite({
-        invitee: phoneNumber,
-        tableReqId: tableReqId,
-        joiningFee: joiningFee,
-        organizerId: organizerId,
-        isAccepted: false,
-        isDeleted: false,
-      });
-      await newInvite.save();
-      res
-        .status(201)
-        .json({ message: "New invite created", invite: newInvite });
-    }
+      message = "Existing invites marked as deleted. ";
+    } 
+    
+    // Create a new invite if none are found or once old invites have been "deleted"
+    const newInvite = new Invite({
+      invitee: phoneNumber,
+      tableRequestId: tableRequestId,
+      joiningFee: joiningFee,
+      organizerId: organizerId,
+      isAccepted: false,
+      isDeleted: false,
+    });
+    
+    await newInvite.save();
+    res.status(201).json({ message: message + "New invite created", invite: newInvite });
+    
   } catch (error) {
     res.status(500).json({ message: "An error occurred", error });
   }
 });
 
+
 // call this when inviting an in-app user
-router.post("/sendInternalInvite", async (req, res) => {
+/*router.post("/sendInternalInvite", async (req, res) => {
   const organizerId = req.body.organizerId;
   const userName = req.body.userName;
   const tableReqId = req.body.tableReqId;
@@ -106,7 +110,7 @@ router.post("/sendInternalInvite", async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "An error occurred", error });
   }
-});
+});*/
 
 // Endpoint to decline an invite
 router.patch("/declineInvite", async (req, res) => {
@@ -157,17 +161,25 @@ router.patch("/acceptInvite", async (req, res) => {
 });
 
 //Endpoint to get list of all invites based on Phone number
-router.get("/getListOfInvites", async (req, res) => {
-  let { phoneNumber } = req.params;
-  const requestsList = await Invite.find({ invitee: phoneNumber })
-    .populate(tableRequestId)
-    .lean();
-  if (!requestsList.length)
-    return res.status(200).send({ status: false, message: "no Invites" });
-  return res
-    .status(200)
-    .send({ status: true, message: "found", data: requestsList });
+router.get("/getListOfInvites/:phoneNumber", async (req, res) => {
+  try {
+    let { phoneNumber } = req.params;
+    const requestsList = await Invite.find({ invitee: phoneNumber })
+      .populate('tableRequestId')  // note the quotes here
+      .lean();
+
+    if (!requestsList.length) {
+      return res.status(404).send({ message: "No invites found" });  // Using 404 status for not found
+    }
+
+    return res.status(200).send({ message: "Invites found", data: requestsList });
+  } catch (error) {
+    console.error("Error fetching invites:", error);
+    return res.status(500).send({ message: "Internal server error" });  // Handling unexpected errors
+  }
 });
+
+
 // Endpoint to delete an invite, when table request is closed
 router.delete("/deleteInvite", async (req, res) => {
   const inviteId = req.body.inviteId;
@@ -181,13 +193,15 @@ router.delete("/deleteInvite", async (req, res) => {
     );
 
     if (!invite) {
-      return res.status(404).json({ message: "Invite not found" });
+      return res.status(404).json({ message: "Invite not found", invite: invite});
     }
 
-    res.status(200).json({ message: "Invite successfully deleted" });
+    res.status(200).json({ message: "Invite successfully deleted", invite: invite });
   } catch (error) {
     res.status(500).json({ message: "An error occurred", error });
   }
 });
 
 module.exports = router;
+// 65296ed8ec848c037c1337ad invite id
+// 65296aca1f4aa13f98c59d92 table req id
