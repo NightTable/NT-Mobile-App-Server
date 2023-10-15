@@ -4,6 +4,7 @@ const router = express.Router();
 const TableConfiguration = require("../models/TableConfiguration");
 const Event = require("../models/Event");
 const TableRequestCollection = require("../models/TableRequest");
+const mongoose = require('mongoose');
 
 router.get("/club/:clubId", async (req, res) => {
   try {
@@ -125,33 +126,68 @@ router.delete("/:tableconfigId", async (req, res) => {
   }
 });
 
-//get table configurations with no active table requests
 router.get("/tableConfigurations/:eventId", async (req, res) => {
   try {
     let eventId = req.params.eventId;
+    //console.log(eventId)
+    let tableConfigs = await TableConfiguration.find({
+      eventId: eventId,
+    }).lean();
+
+    if (!tableConfigs.length) {
+      return res.status(200).send({ status: false, message: "no tableconfigs available" });
+    }
+
+    return res.status(200).send({
+      status: true,
+      message: "table configs found",
+      data: tableConfigs,
+    });
+  } catch (error) {
+    return res.status(500).send({ status: false, message: error.message });
+  }
+});
+
+
+//get table configurations with no active table requests
+/*router.get("/tableConfigurations/:eventId", async (req, res) => {
+  try {
+    let eventId = req.params.eventId;
+    console.log("eventId", eventId, "\n");
+
     let configOfNotActiveTableRequests = await TableRequestCollection.find({
       eventId: eventId,
       isActive: false,
       isDeleted: false,
     })
-      .select({ _id: 0, tableConfigId: 1 })
-      .lean();
+    .select({ _id: 0, tableConfigId: 1 })
+    .lean();
+
+    console.log("configOfNotActiveTableRequests", configOfNotActiveTableRequests, "\n");
+
     if (!configOfNotActiveTableRequests.length)
       return res
         .status(200)
         .send({ status: false, message: "no tableconfigs available" });
 
+    // Extract the actual ObjectId values from configOfNotActiveTableRequests
+    let tableConfigIds = configOfNotActiveTableRequests.map(item => item.tableConfigId[0]);
+
     let tableConfigsWithNoActiveTableRequests =
       await TableConfiguration
         .find({
-          _id: { $in: configOfNotActiveTableRequests },
+          _id: { $in: tableConfigIds },
           isDeleted: false,
         })
         .lean();
+
+    console.log("tableConfigsWithNoActiveTableRequests", tableConfigsWithNoActiveTableRequests, "\n");
+
     if (!tableConfigsWithNoActiveTableRequests.length)
       return res
         .status(200)
         .send({ status: false, message: "table config not found" });
+
     return res.status(200).send({
       status: true,
       message: "table configs found",
@@ -160,6 +196,7 @@ router.get("/tableConfigurations/:eventId", async (req, res) => {
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
-});
+});*/
+
 
 module.exports = router;
