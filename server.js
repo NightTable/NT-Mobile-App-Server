@@ -9,6 +9,7 @@ const express = require("express");
 const app = express();
 const port = process.env.PORT || 3000;
 const mongoose = require("mongoose");
+const morgan = require('morgan');
 const socketio = require("socket.io");
 const cors = require("cors");
 const bodyParser = require("body-parser");
@@ -95,6 +96,7 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/invites", inviteRoutes);
 
 configureTestInterfaceRoutes(app);
+app.use(morgan('combined')); // 'combined' is a log format; you can use others like 'tiny' or 'dev'
 
 // app.get("/images/:key", (req, res) => {
 //   const key = req.params.key;
@@ -158,7 +160,7 @@ let io;
 
 if (process.env.NODE_ENV !== "test") {
   listenedServerInstance = app.listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}`);
+    console.log(`Example app listening at http://0.0.0.0:${port}`);
   });
 }
 // io = socketio(listenedServerInstance);

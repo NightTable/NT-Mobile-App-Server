@@ -31,18 +31,24 @@ router.post("/create-customer", async (req, res) => {
 // Create Payment Intent
 router.post("/create-payment-intent", async (req, res) => {
   try {
+    console.log("Request body received:", req.body);
+
     const lineItems = req.body.lineItems;
     const paymentType = req.body.paymentType;
     const paymentMethodId = req.body.paymentMethodId;
     const customerId = req.body.customerId;
     let amount = req.body.amount;
-    let nightTableFee = 28;
+    let nightTableFee = 30;
     const totalFee = lineItems.reduce((acc, val) => acc + val, 0) + nightTableFee;
-    amount = Math.floor(amount * (1 + (totalFee / 100)) * 100);
+    amount = Math.ceil(amount * (1 + (totalFee / 100)) * 100);
+    amount = Math.ceil(amount * (1 + 2.9/100) * 100) + 30;
+
+    console.log("Computed amount:", amount);
 
     const customerInternal = await Customer.findOne({ stripeCustomerId: customerId });
 
     if (!customerInternal) {
+      console.log("Customer not found with ID:", customerId);
       return res.status(404).send({ error: "Customer not found" });
     }
 
@@ -56,6 +62,8 @@ router.post("/create-payment-intent", async (req, res) => {
       cpMethod = "automatic";
     }
 
+    console.log("Payment method being used:", cpMethod);
+
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amount,
       currency: "USD",
@@ -67,23 +75,29 @@ router.post("/create-payment-intent", async (req, res) => {
       customer: customerId
     });
 
-    if (!Array.isArray(customerInternal.paymentIntentIds)) {
+    console.log("Payment Intent created:", paymentIntent);
+
+    if (!Array.isArray(customerInternal.paymentIntentIds) || customerInternal.paymentIntentIds.length === 0) {
       customerInternal.paymentIntentIds = [];
     }
 
     customerInternal.paymentIntentIds.push(paymentIntent.id);
-
     await customerInternal.save();
+
+    console.log("Updated customer internal:", customerInternal);
 
     const clientSecret = paymentIntent.client_secret;
     return res.json({
       paymentIntent: paymentIntent,
       clientSecret: clientSecret
     });
+
   } catch (error) {
+    console.error("Error in /create-payment-intent:", error.message, error.stack);
     return res.status(500).send({ error: "Something went wrong." });
   }
 });
+
 
 
 // Capture Payment Intent
@@ -98,7 +112,7 @@ router.post("/capture-payment-intent", async (req, res) => {
   }
 });
 
-router.post("/confirm-payment-intent", async (req, res) => {
+/*router.post("/confirm-payment-intent", async (req, res) => {
   try {
     const paymentIntentId = req.body.paymentIntentId;
     const paymentIntent = await stripe.paymentIntents.capture(paymentIntentId);
@@ -107,7 +121,7 @@ router.post("/confirm-payment-intent", async (req, res) => {
     console.log(error);
     res.status(500).send({ error: "Something went wrong.", paymentIntent: paymentIntent.id });
   }
-});
+});*/
 
 //refund a charge, used for pnsl
 router.post("/create-refund", async (req, res) => {

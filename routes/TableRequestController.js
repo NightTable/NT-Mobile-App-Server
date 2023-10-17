@@ -627,6 +627,27 @@ router.get("/clubs/:clubId", async (req, res) => {
     return res.status(500).send({status:false, message:'server error'})
   }
 });
+
+// GET list of table requests by table config ID
+router.get("/tableConfiguration/:tableConfigId", async (req, res) => {
+  try {
+    const tableConfigId = req.params.tableConfigId;
+    const tableRequest = await TableRequest.find({
+      tableConfigId: tableConfigId
+    });
+
+    if (!tableRequest || tableRequest.length === 0) {
+      return res.status(200).send({ status: false, message: "table requests not found" });
+    } else {
+      return res.status(200).send({ status: true, message: "table requests found", data: tableRequest });
+    }
+
+  } catch(error) {
+    return res.status(500).send({status: false, message: 'server error'});
+  }
+});
+
+
   // GET /api/events/event/:eventId - get the event details (date and name) via eventId
         //DONE IN EVENT CONTROLLER
 // GET /api/users/:userId - get the user object that’s creating the reques via userIdt, get the user’s name, check whether he’s a promoter/host/club representative
