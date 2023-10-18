@@ -45,7 +45,7 @@ router.post("/create-payment-intent", async (req, res) => {
     const stripeFlatFee = 0.30; // 30 cents flat fee, adjust if different
 
     amount = amount * (1 + (totalFeePercentage / 100));
-    amount = amount * (1 + stripeFeePercentage / 100) + stripeFlatFee;
+    amount = (amount + stripeFlatFee) / (100 - stripeFeePercentage);
     amount = Math.ceil(amount * 100);    
 
     const customerInternal = await Customer.findOne({ stripeCustomerId: customerId });
