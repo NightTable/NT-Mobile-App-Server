@@ -632,20 +632,28 @@ router.get("/clubs/:clubId", async (req, res) => {
 router.get("/tableConfiguration/:tableConfigId", async (req, res) => {
   try {
     const tableConfigId = req.params.tableConfigId;
+    console.log(`Received request to fetch table configuration for ID: ${tableConfigId}`);
+
     const tableRequest = await TableRequest.find({
       tableConfigId: tableConfigId
     });
 
+    console.log(`Fetched table requests for ID ${tableConfigId}:`, tableRequest);
+
     if (!tableRequest || tableRequest.length === 0) {
-      return res.status(200).send({ status: false, message: "table requests not found" });
+      console.log(`No table requests found for ID ${tableConfigId}`);
+      return res.status(200).send({ status: false, message: "table requests not found", data: [] });
     } else {
+      console.log(`Table requests found for ID ${tableConfigId}:`, tableRequest);
       return res.status(200).send({ status: true, message: "table requests found", data: tableRequest });
     }
 
   } catch(error) {
+    console.error(`Error occurred while fetching table requests for ID ${req.params.tableConfigId}:`, error.message);
     return res.status(500).send({status: false, message: 'server error'});
   }
 });
+
 
 
   // GET /api/events/event/:eventId - get the event details (date and name) via eventId
