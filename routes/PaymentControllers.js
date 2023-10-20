@@ -29,7 +29,7 @@ router.post("/create-customer", async (req, res) => {
 });
 
 // Create Payment Intent
-router.post("/create-payment-intent", async (req, res) => {
+/*router.post("/create-payment-intent", async (req, res) => {
   try {
     console.log("Request body received:", req.body);
 
@@ -91,7 +91,71 @@ router.post("/create-payment-intent", async (req, res) => {
   } catch (error) {
     return res.status(500).send({ error: "Something went wrong." });
   }
+});*/
+
+router.post("/create-payment-intent", async (req, res) => {
+  try {
+
+    const lineItems = req.body.lineItems;
+    const paymentType = req.body.paymentType;
+    const paymentMethodId = req.body.paymentMethodId;
+    const customerId = req.body.customerId;
+    let amount = req.body.amount * 100; // Convert initial amount to cents right after receiving
+    let nightTableFee = 30; // Keep it as a percentage
+
+    const totalFeePercentage = lineItems.reduce((acc, val) => acc + val, 0) + nightTableFee;
+    const stripeFeePercentage = 2.9; // 2.9% is typical for Stripe, adjust if different
+    const stripeFlatFee = 30; // 30 cents in cents format
+
+    amount = amount * (1 + (totalFeePercentage / 100));
+    amount += stripeFlatFee; // Adding stripe's flat fee directly to the amount
+    amount = Math.ceil(amount); // Round up to the nearest cent
+
+    const customerInternal = await Customer.findOne({ stripeCustomerId: customerId });
+
+    if (!customerInternal) {
+      return res.status(404).send({ error: "Customer not found" });
+    }
+
+    let cpMethod = "automatic";
+    if (paymentType === "snpl") {
+      cpMethod = "manual";
+    }
+
+    if (["add-on", "pnsl"].includes(paymentType)) {
+      cpMethod = "automatic";
+    }
+
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: amount,
+      currency: "USD",
+      confirm: (cpMethod === 'manual' ? false : true),
+      confirmation_method: "automatic",
+      capture_method: cpMethod,
+      payment_method_types: ['card'],
+      payment_method: paymentMethodId,
+      customer: customerId
+    });
+
+    if (!Array.isArray(customerInternal.paymentIntentIds) || customerInternal.paymentIntentIds.length === 0) {
+      customerInternal.paymentIntentIds = [];
+    }
+
+    customerInternal.paymentIntentIds.push(paymentIntent.id);
+    await customerInternal.save();
+
+    const clientSecret = paymentIntent.client_secret;
+
+    return res.json({
+      paymentIntent: paymentIntent,
+      clientSecret: clientSecret
+    });
+
+  } catch (error) {
+    return res.status(500).send({ error: "Something went wrong." });
+  }
 });
+
 
 // Capture Payment Intent
 router.post("/capture-payment-intent", async (req, res) => {

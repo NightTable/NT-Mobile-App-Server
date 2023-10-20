@@ -14,9 +14,13 @@ const tableRequestSchema = new Schema({
         ref: 'TableConfiguration',
         required: true
     }],
-    customMinimum: {
+    minimum: {
         type:Number,
         required: true
+    },
+    customMinimum: {
+        type:Number,
+        required: false
     },
     eventId:{
         type: Schema.Types.ObjectId,
@@ -44,14 +48,15 @@ const tableRequestSchema = new Schema({
     },
     taken: {
         type: Number,
-        require: true
+        require: false
     },
     available: {
         type: Number,
-        required: true
+        required: false
     },
     eta:{
-        type: Date
+        type: Date,
+        required: true
     },
     mfRatio: {
         type: Number,

@@ -30,8 +30,7 @@ router.get("/tablereq/:tableReqId", async (req, res) => {
 });
 
 router.post("/tableReq", async (req, res) => {
-  try {
-    let tableReqBody = req.body;
+  try { 
     let tableReq = await TableRequest.create(tableReqBody);
     return res.status(201).send({
       status: true,
