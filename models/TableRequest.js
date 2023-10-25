@@ -60,7 +60,7 @@ const tableRequestSchema = new Schema({
     },
     mfRatio: {
         type: Number,
-        required: true
+        required: false
     },
     isPolling: {
         type: Boolean,
