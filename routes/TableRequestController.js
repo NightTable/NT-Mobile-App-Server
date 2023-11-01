@@ -29,9 +29,9 @@ router.get("/tablereq/:tableReqId", async (req, res) => {
   }
 });
 
-router.post("/tableReq", async (req, res) => {
+router.post("/createTableRequest", async (req, res) => {
   try { 
-    let tableReq = await TableRequest.create(tableReqBody);
+    let tableReq = await TableRequest.create(req.body);
     return res.status(201).send({
       status: true,
       message: "tableRequest created successfully",
@@ -41,6 +41,7 @@ router.post("/tableReq", async (req, res) => {
     return res.status(500).send({ status: false, message: error.message });
   }
 });
+
 
 router.put("/tableReq/:tableReqId", async (req, res) => {
   try {
