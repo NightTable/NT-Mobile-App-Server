@@ -8,6 +8,7 @@ const { ObjectId } = require("mongodb");
 
 //call this endpoint when inviting a new or existing user. Invite done via phone number
 router.post("/sendExternalInvite", async (req, res) => {
+  console.log(req.body, "\n");
   const organizerId = req.body.organizerId;
   const phoneNumber = req.body.phoneNumber;
   const tableRequestId = req.body.tableRequestId;
