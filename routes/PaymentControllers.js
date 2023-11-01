@@ -107,8 +107,8 @@ router.post("/create-payment-intent", async (req, res) => {
     const stripeFeePercentage = 2.9; // 2.9% is typical for Stripe, adjust if different
     const stripeFlatFee = 30; // 30 cents in cents format
 
-    amount = amount * (1 + (totalFeePercentage / 100));
-    amount += stripeFlatFee; // Adding stripe's flat fee directly to the amount
+    amount = amount * (1 + (totalFeePercentage / 100)); // adding our fees, tip, etc. this is the amount we want remaining in bank
+    amount = (amount + stripeFlatFee) / ((100-stripeFeePercentage) / 100); // factoring in stripe fees
     amount = Math.ceil(amount); // Round up to the nearest cent
 
     const customerInternal = await Customer.findOne({ stripeCustomerId: customerId });
