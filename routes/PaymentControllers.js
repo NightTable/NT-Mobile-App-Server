@@ -363,6 +363,34 @@ router.patch("/update-internalCustomer/:id", async (req, res) => {
   }
 });
 
+router.patch("/payout-by-tableReqId/:id", async (req, res) => {
+  try {
+    /*
+      retrieve the club id and promoter id
+      create a bank account object for the club and promoter in stripe with following fields
+      - source.currency 
+      - source.country
+      - source.object // The type of external account. Should be bank_account.
+      - source.account_number
+      - source.routing_number
+
+      do for club and promoter:
+      const payout = await stripe.payouts.create({
+        amount: 1100,
+        currency: 'usd',
+        destination: "ba_1O7ghO2eZvKYlo2CohzW1IOt"
+      });
+
+      do the payouts based on the percentages of revenue share with promoter and club
+
+    */
+    console.log("test");
+
+  } catch (error) {
+    return res.status(500).send({ error: "Something went wrong." });
+  }
+});
+
 // Update payment intent. This endpoint is used when user is in polling room screen,
 // and instead of contributing 500, they want to contribute 600
 // or some amount that's >= the minimum required joining price
