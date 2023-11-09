@@ -363,6 +363,78 @@ router.patch("/update-internalCustomer/:id", async (req, res) => {
   }
 });
 
+router.get('/authorize', async (req, res) => {
+  // Generate a random string as `state` to protect from CSRF and include it in the session
+  req.session.state = Math.random()
+    .toString(36)
+    .slice(2);
+
+  console.log(req.session.state, "req.session.state");
+
+  try {
+    let accountId = req?.user?.stripeAccountId;
+
+    console.log(accountId, "accountId");
+
+    // Create a Stripe account for this user if one does not exist already
+    if (accountId == undefined ) {
+      // Define the parameters to create a new Stripe account with
+      /*let accountParams = {
+        type: 'express',
+        country: 'US',
+        email: 'amiyasekar@gmail.com',
+        business_type: 'individual', 
+      }
+      
+      console.log(accountParams, "accountParams");
+
+      // Companies and invididuals require different parameters
+      if (accountParams.business_type === 'company') {
+        accountParams = Object.assign(accountParams, {
+          company: {
+            name: req.user.businessName || undefined
+          }
+        });
+      } else {
+        accountParams = Object.assign(accountParams, {
+          individual: {
+            first_name: 'Amya',
+            last_name: 'Sekhar',
+            email: 'amiyasekar@gmail.com'
+          }
+        });
+      }*/
+  
+      const account = await stripe.accounts.create({
+        type: 'express'
+      });
+      console.log(account, "account");
+      accountId = account.id;
+      console.log(accountId, "accountId");
+
+      // Update the model and store the Stripe account ID in the datastore:
+      // this Stripe account ID will be used to issue payouts to the pilot
+      //req.user.stripeAccountId = accountId;
+      //await req.user.save();
+    }
+
+    // Create an account link for the user's Stripe account
+    const accountLink = await stripe.accountLinks.create({
+      account: accountId,
+      refresh_url: 'https://www.nighttable.co',
+      return_url: 'https://www.nighttable.co',
+      type: 'account_onboarding'
+    });
+
+    // Redirect to Stripe to start the Express onboarding flow
+    res.json(accountLink.url);
+    //res.redirect(accountLink.url);
+  } catch (err) {
+    console.log('Failed to create a Stripe account.');
+    console.log(err);
+  }
+});
+
 router.patch("/payout-by-tableReqId/:id", async (req, res) => {
   try {
     /*
