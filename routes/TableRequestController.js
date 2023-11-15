@@ -38,6 +38,7 @@ router.post("/createTableRequest", async (req, res) => {
       data: tableReq,
     });
   } catch (error) {
+    console.log("error", error);
     return res.status(500).send({ status: false, message: error.message });
   }
 });

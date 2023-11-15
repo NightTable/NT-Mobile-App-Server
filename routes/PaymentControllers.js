@@ -8,6 +8,8 @@ const Club = require('../models/Club')
 // whenever there is a payment to be made, we create an intent through this api --- capture method is manual
 // so that we can hold the payment first and complete the payment in the end
 // Creating a customer internally and in stripe
+
+
 router.post("/create-customer", async (req, res) => {
   try {
     const userId = req.body.userId;
@@ -363,75 +365,87 @@ router.patch("/update-internalCustomer/:id", async (req, res) => {
   }
 });
 
-router.get('/authorize', async (req, res) => {
-  // Generate a random string as `state` to protect from CSRF and include it in the session
-  req.session.state = Math.random()
-    .toString(36)
-    .slice(2);
-
-  console.log(req.session.state, "req.session.state");
+router.get('/authorize/authorizeClub', async (req, res) => {
+  req.session.state = Math.random().toString(36).slice(2);
 
   try {
     let accountId = req?.user?.stripeAccountId;
 
-    console.log(accountId, "accountId");
-
-    // Create a Stripe account for this user if one does not exist already
-    if (accountId == undefined ) {
-      // Define the parameters to create a new Stripe account with
-      /*let accountParams = {
-        type: 'express',
-        country: 'US',
-        email: 'amiyasekar@gmail.com',
-        business_type: 'individual', 
-      }
-      
-      console.log(accountParams, "accountParams");
-
-      // Companies and invididuals require different parameters
-      if (accountParams.business_type === 'company') {
-        accountParams = Object.assign(accountParams, {
-          company: {
-            name: req.user.businessName || undefined
-          }
-        });
-      } else {
-        accountParams = Object.assign(accountParams, {
-          individual: {
-            first_name: 'Amya',
-            last_name: 'Sekhar',
-            email: 'amiyasekar@gmail.com'
-          }
-        });
-      }*/
-  
-      const account = await stripe.accounts.create({
-        type: 'express'
-      });
-      console.log(account, "account");
+    if (!accountId) {
+      const account = await stripe.accounts.create({ type: 'express' });
       accountId = account.id;
-      console.log(accountId, "accountId");
-
-      // Update the model and store the Stripe account ID in the datastore:
-      // this Stripe account ID will be used to issue payouts to the pilot
-      //req.user.stripeAccountId = accountId;
-      //await req.user.save();
+      // Save the accountId in the session or database associated with the user here
+      req.session.stripeAccountId = accountId; // Example: storing in the session
     }
 
-    // Create an account link for the user's Stripe account
+    const state = req.session.state;
     const accountLink = await stripe.accountLinks.create({
       account: accountId,
       refresh_url: 'https://www.nighttable.co',
-      return_url: 'https://www.nighttable.co',
-      type: 'account_onboarding'
+      return_url: `https://www.nighttable.co/onboarding/clubOnboarding/success?state=${state}`,
+      type: 'account_onboarding',
     });
-
-    // Redirect to Stripe to start the Express onboarding flow
     res.json(accountLink.url);
+
     //res.redirect(accountLink.url);
   } catch (err) {
-    console.log('Failed to create a Stripe account.');
+    console.error('Failed to create a Stripe account.', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+router.get('/onboarding/clubOnboarding/success', async (req, res) => {
+  try {
+    const sessionState = req.session.state;
+    if (req.query.state !== sessionState) {
+      return res.status(403).json({ error: 'State mismatch, possible CSRF attack.' });
+    }
+
+    const accountId = req.session.stripeAccountId; // This should have been saved in the session earlier
+    const account = await stripe.accounts.retrieve(accountId);
+
+    console.log(req.session);
+    res.json(account);
+
+    // Here you can perform any operations with the Stripe account if needed
+    
+    // Instead of sending the account object, send the acknowledgment
+    // Redirect to a client-side page that will handle the logging
+    res.redirect('/onboarding/success');
+  } catch (err) {
+    console.log('Failed to complete Stripe account onboarding.');
     console.log(err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+router.get('/onboarding/representativeOnboarding/success', async (req, res) => {
+  try {
+    // You'd retrieve the session or user identifier here, typically from the session or query parameters.
+    const sessionState = req.session.state;
+    const accountId = req.query.accountId; // This should be passed securely, possibly as a part of the session state validation.
+
+    // Here you'd validate the session state or perform any other security checks.
+    if (req.query.state !== sessionState) {
+      // Handle the error scenario where the state doesn't match.
+      return res.status(403).json({ error: 'State mismatch, possible CSRF attack.' });
+    }
+
+    // If all checks pass, you could retrieve additional info about the Stripe account if needed.
+    const account = await stripe.accounts.retrieve(accountId);
+    
+    // Update your database with the Stripe account ID and any other necessary details.
+    // ...
+
+    // Redirect the user to a page indicating success or pass the account ID as needed.
+    // Note: You should not expose sensitive information like the account ID to the client.
+    // Instead, you might show a success message or log them into their new account.
+    res.redirect('/dashboard');
+  } catch (err) {
+    console.log('Failed to complete Stripe account onboarding.');
+    console.log(err);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
