@@ -1,16 +1,60 @@
 const express = require("express");
+const Participant = require("../models/Participant");
 const router = express.Router();
 const ObjectId = require("mongodb").ObjectId;
 const tableReqParticipantMapping = require("../models/TableRequestParticipantMapping");
 
-router.post("/tableReqParticipantMapping", async (req, res) => {
+
+
+router.post("/createTableReqParticipantMapping", async (req, res) => {
     try {
-      let tableReqParticipantMappingBody = req.body;
-      let tableReqParticipantMapping = await tableReqParticipantMapping.create(tableReqParticipantMappingBody);
+      let phoneNumber = req.body.phoneNumber;
+      let isPaymentInfoRegistered = false;
+      let userId = req?.body?.userId;
+
+      const participantData = {
+        phoneNumber: phoneNumber,
+        isPaymentInfoRegistered: isPaymentInfoRegistered,
+        ...(userId ? { userId: userId } : {}) // Include userId only if it's not null/undefined
+      };
+      
+
+      const participant = await Participant.create(participantData);
+      console.log(participant, "participant\n");
+      console.log(participant.id, "participant\n");
+
+      let tableReqId = req.body.tableRequestId;
+      console.log(tableReqId, "tableReqId");
+
+      let minimumPrice = req.body.minimumPrice;
+      console.log(minimumPrice, "minimumPrice");
+
+      let isRequestOrganizer = req.body.isRequestOrganizer;
+      console.log(isRequestOrganizer, "isRequestOrganizer");
+
+      let isInvitedPending = req.body.isInvitedPending;
+      console.log(isInvitedPending, "isInvitedPending");
+
+      let isActiveParticipant = req.body.isActiveParticipant;
+      console.log(isActiveParticipant, "isActiveParticipant");
+
+      let trpm = await tableReqParticipantMapping.create({
+        tableReqId: tableReqId,
+        participantId: participant.id,
+        isRequestOrganizer: isRequestOrganizer,
+        minimumPrice: minimumPrice,
+        isActiveParticipant: isActiveParticipant,
+        isInvitedPending: isInvitedPending
+      });
+      console.log(trpm, "tableReqParticipantMapping");
+
+
+      trpm = await trpm.populate('participantId');
+
       return res.status(201).send({
         status: true,
         message: "tableReqParticipantMapping created successfully",
-        data: tableReqParticipantMapping,
+        data: trpm,
       });
     } catch (error) {
       return res.status(500).send({ status: false, message: error.message });

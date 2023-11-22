@@ -29,6 +29,25 @@ router.get("/tablereq/:tableReqId", async (req, res) => {
   }
 });
 
+router.get("/organizerUserId/:organizerUserId", async (req, res) => {
+  try {
+    let organizerUserId = req.params.organizerUserId;
+    let tableReq = await TableRequest.find({
+      organizerUserId: organizerUserId,
+      isDeleted: false,
+    }).populate("tableConfigId organizerUserId promoterId");
+    if (!tableReq)
+      return res
+        .status(200)
+        .send({ status: false, message: "Table request by organizer not found" });
+    return res
+      .status(200)
+      .send({ status: true, message: "success", data: tableReq });
+  } catch (error) {
+    return res.status(500).send({ status: false, message: error.message });
+  }
+});
+
 router.post("/createTableRequest", async (req, res) => {
   try { 
     let tableReq = await TableRequest.create(req.body);
@@ -87,6 +106,83 @@ router.delete("/tableReq/:tableReqId", async (req, res) => {
     return res.status(500).send({ status: false, message: error.message });
   }
 });
+
+// GET /api/clubs/:clubId - get the club at which the table request is being made at via clubId, get the name of the club
+router.get("/clubs/:clubId", async (req, res) => {
+  try{
+  let { clubId } = req.params;
+  let club = await Club.findOne({ _id: clubId, isDeleted: false }).lean();
+  if (!club)
+    return res.status(200).send({ status: false, message: "club not found" });
+  return res
+    .status(200)
+    .send({ status: true, message: "club found", data: club });
+  }catch(error){
+    return res.status(500).send({status:false, message:'server error'})
+  }
+});
+
+// GET list of table requests by table config ID
+router.get("/tableConfiguration/:tableConfigId", async (req, res) => {
+  try {
+    const tableConfigId = req.params.tableConfigId;
+    console.log(`Received request to fetch table configuration for ID: ${tableConfigId}`);
+
+    const tableRequest = await TableRequest.find({
+      tableConfigId: tableConfigId
+    });
+
+    console.log(`Fetched table requests for ID ${tableConfigId}:`, tableRequest);
+
+    if (!tableRequest || tableRequest.length === 0) {
+      console.log(`No table requests found for ID ${tableConfigId}`);
+      return res.status(200).send({ status: false, message: "table requests not found", data: [] });
+    } else {
+      console.log(`Table requests found for ID ${tableConfigId}:`, tableRequest);
+      return res.status(200).send({ status: true, message: "table requests found", data: tableRequest });
+    }
+
+  } catch(error) {
+    console.error(`Error occurred while fetching table requests for ID ${req.params.tableConfigId}:`, error.message);
+    return res.status(500).send({status: false, message: 'server error'});
+  }
+});
+
+
+
+  // GET /api/events/event/:eventId - get the event details (date and name) via eventId
+        //DONE IN EVENT CONTROLLER
+// GET /api/users/:userId - get the user object that’s creating the reques via userIdt, get the user’s name, check whether he’s a promoter/host/club representative
+  // in user controller
+
+// GET /api/clubs/floorplan/:clubId - get the floorplan of the club via clubId
+router.get("/floorPlan/:clubId", async (req, res) => {
+  try {
+    let clubId = req.params.clubId;
+    let club = await Club
+      .findOne({ _id: clubId, isDeleted: false })
+      .lean();
+    if (!club)
+      return res.status(200).send({ status: false, message: "no club found" });
+    return res
+      .status(200)
+      .send({ status: true, message: "club found", floorplan: club.floorPlan });
+  } catch (error) {
+    return res.status(500).send({ status: false, message: error.message });
+  }
+});
+// GET /api/tableconfigurations/tableconfiguration/:eventId - get the tables that aren’t bought out for an event
+        //in table config controllers
+// GET /api/representative/tablemins/:representativeId - get the value of whether mobileAppTableMinimumPrivileges is true or false
+// GET /api/users/tablemins/:userId - get a boolean value telling you whether this user can change table minimums
+      // in custom routes
+// POST /api/clubs/timings/:clubId - get the operating hours of the club
+      //there is no operating hours of the club
+// An endpoint to get invitees via inhouse (people who are friend with the organizer or promoter), number, and email and add to the list of invited participants
+      // need to discuss
+
+
+module.exports = router;
 
 // router.get("/tablereq/:tableConfigId/:eventId", async (req, res) => {
 //   try {
@@ -613,80 +709,3 @@ router.delete("/tableReq/:tableReqId", async (req, res) => {
 //     return;
 //   }
 // });
-
-// GET /api/clubs/:clubId - get the club at which the table request is being made at via clubId, get the name of the club
-router.get("/clubs/:clubId", async (req, res) => {
-  try{
-  let { clubId } = req.params;
-  let club = await Club.findOne({ _id: clubId, isDeleted: false }).lean();
-  if (!club)
-    return res.status(200).send({ status: false, message: "club not found" });
-  return res
-    .status(200)
-    .send({ status: true, message: "club found", data: club });
-  }catch(error){
-    return res.status(500).send({status:false, message:'server error'})
-  }
-});
-
-// GET list of table requests by table config ID
-router.get("/tableConfiguration/:tableConfigId", async (req, res) => {
-  try {
-    const tableConfigId = req.params.tableConfigId;
-    console.log(`Received request to fetch table configuration for ID: ${tableConfigId}`);
-
-    const tableRequest = await TableRequest.find({
-      tableConfigId: tableConfigId
-    });
-
-    console.log(`Fetched table requests for ID ${tableConfigId}:`, tableRequest);
-
-    if (!tableRequest || tableRequest.length === 0) {
-      console.log(`No table requests found for ID ${tableConfigId}`);
-      return res.status(200).send({ status: false, message: "table requests not found", data: [] });
-    } else {
-      console.log(`Table requests found for ID ${tableConfigId}:`, tableRequest);
-      return res.status(200).send({ status: true, message: "table requests found", data: tableRequest });
-    }
-
-  } catch(error) {
-    console.error(`Error occurred while fetching table requests for ID ${req.params.tableConfigId}:`, error.message);
-    return res.status(500).send({status: false, message: 'server error'});
-  }
-});
-
-
-
-  // GET /api/events/event/:eventId - get the event details (date and name) via eventId
-        //DONE IN EVENT CONTROLLER
-// GET /api/users/:userId - get the user object that’s creating the reques via userIdt, get the user’s name, check whether he’s a promoter/host/club representative
-  // in user controller
-
-// GET /api/clubs/floorplan/:clubId - get the floorplan of the club via clubId
-router.get("/floorPlan/:clubId", async (req, res) => {
-  try {
-    let clubId = req.params.clubId;
-    let club = await Club
-      .findOne({ _id: clubId, isDeleted: false })
-      .lean();
-    if (!club)
-      return res.status(200).send({ status: false, message: "no club found" });
-    return res
-      .status(200)
-      .send({ status: true, message: "club found", floorplan: club.floorPlan });
-  } catch (error) {
-    return res.status(500).send({ status: false, message: error.message });
-  }
-});
-// GET /api/tableconfigurations/tableconfiguration/:eventId - get the tables that aren’t bought out for an event
-        //in table config controllers
-// GET /api/representative/tablemins/:representativeId - get the value of whether mobileAppTableMinimumPrivileges is true or false
-// GET /api/users/tablemins/:userId - get a boolean value telling you whether this user can change table minimums
-      // in custom routes
-// POST /api/clubs/timings/:clubId - get the operating hours of the club
-      //there is no operating hours of the club
-// An endpoint to get invitees via inhouse (people who are friend with the organizer or promoter), number, and email and add to the list of invited participants
-      // need to discuss
-
-
-module.exports = router;

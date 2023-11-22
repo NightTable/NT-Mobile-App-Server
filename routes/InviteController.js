@@ -165,7 +165,10 @@ router.patch("/acceptInvite", async (req, res) => {
 router.get("/getListOfInvites/:phoneNumber", async (req, res) => {
   try {
     let { phoneNumber } = req.params;
-    const requestsList = await Invite.find({ invitee: phoneNumber })
+    const requestsList = await Invite.find({ 
+      invitee: phoneNumber,
+      isDeleted: false 
+    })
       .populate('tableRequestId')  // note the quotes here
       .lean();
 

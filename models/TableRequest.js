@@ -18,6 +18,14 @@ const tableRequestSchema = new Schema({
         type:Number,
         required: true
     },
+    totalTableAlcSpend: {
+        type:Number,
+        required: false
+    },
+    totalAllIncSpend: {
+        type:Number,
+        required: false
+    },
     customMinimum: {
         type:Number,
         required: false

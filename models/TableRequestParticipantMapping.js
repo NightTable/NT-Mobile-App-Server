@@ -29,7 +29,11 @@ const tableRequestParticipantMappingSchema = new Schema({
     type: Boolean,
     required: true,
   },
-  customPrice: {
+  individualSpend: {
+    type: Number,
+    required: false,
+  },
+  /*customPrice: {
     type: Number,
     required: true,
   },
@@ -44,7 +48,7 @@ const tableRequestParticipantMappingSchema = new Schema({
   isCostContributionFinalized: {
     type: Boolean,
     required: true,
-  },
+  },*/
   isDeleted:{
     type:Boolean,
     default: false

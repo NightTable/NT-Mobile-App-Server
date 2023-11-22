@@ -42,6 +42,7 @@ const representativeControllerRoutes = require("./routes/RepresentativeControlle
 const customRoutes = require("./routes/customRoutesController");
 const paymentRoutes = require("./routes/PaymentControllers");
 const inviteRoutes = require("./routes/InviteController");
+const tableRequestParticipantMappingRoutes = require("./routes/TableReqParticipantMappingController");
 const jwt = require("jsonwebtoken");
 let socketNameSpaces = ["tableReqNameSpace", "messageChatNamespace"];
 let userModel = require("./models/User");
@@ -94,6 +95,9 @@ app.use("/api/representatives", representativeControllerRoutes);
 app.use("/api/customRoutes", customRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/invites", inviteRoutes);
+app.use("/api/tableRequestParticipantMapping", tableRequestParticipantMappingRoutes);
+
+
 
 configureTestInterfaceRoutes(app);
 app.use(morgan('combined')); // 'combined' is a log format; you can use others like 'tiny' or 'dev'
