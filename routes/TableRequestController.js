@@ -32,17 +32,24 @@ router.get("/tablereq/:tableReqId", async (req, res) => {
 router.get("/organizerUserId/:organizerUserId", async (req, res) => {
   try {
     let organizerUserId = req.params.organizerUserId;
-    let tableReq = await TableRequest.find({
+    let tableReqs = await TableRequest.find({
       organizerUserId: organizerUserId,
       isDeleted: false,
-    }).populate("tableConfigId organizerUserId promoterId");
-    if (!tableReq)
-      return res
-        .status(200)
-        .send({ status: false, message: "Table request by organizer not found" });
-    return res
-      .status(200)
-      .send({ status: true, message: "success", data: tableReq });
+    })
+    .populate({
+      path: "tableConfigId",
+      populate: [
+        { path: "clubId" }, // Populating clubId in each tableConfigId object
+        { path: "eventId" }  // Populating eventId in each tableConfigId object
+      ]
+    })
+    .populate("organizerUserId promoterId"); // Continue to populate other fields
+
+    if (tableReqs.length === 0) {
+      return res.status(404).send({ status: false, message: "Table request by organizer not found" });
+    }
+
+    return res.status(200).send({ status: true, message: "success", data: tableReqs });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }

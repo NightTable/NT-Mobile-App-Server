@@ -2,7 +2,7 @@ const express = require("express");
 const Participant = require("../models/Participant");
 const router = express.Router();
 const ObjectId = require("mongodb").ObjectId;
-const tableReqParticipantMapping = require("../models/TableRequestParticipantMapping");
+const TableReqParticipantMapping = require("../models/TableRequestParticipantMapping");
 
 
 
@@ -38,7 +38,7 @@ router.post("/createTableReqParticipantMapping", async (req, res) => {
       let isActiveParticipant = req.body.isActiveParticipant;
       console.log(isActiveParticipant, "isActiveParticipant");
 
-      let trpm = await tableReqParticipantMapping.create({
+      let trpm = await TableReqParticipantMapping.create({
         tableReqId: tableReqId,
         participantId: participant.id,
         isRequestOrganizer: isRequestOrganizer,
@@ -108,21 +108,43 @@ router.post("/createTableReqParticipantMapping", async (req, res) => {
   });
 
 
-  router.get("/:tableReqParticipantMapping", async (req, res) => {
+  router.get("/tableRequest/:tableReqId", async (req, res) => {
     try {
-      let { tableReqParticipantMappingId } = req.params;
-      let tableReqParticipantMapping = await tableReqParticipantMapping.findOne({
-        _id: tableReqParticipantMappingId,
+      let tableReqId = req.params.tableReqId;
+  
+      // Find the tableReqParticipantMapping documents
+      let tableReqParticipantMappings = await TableReqParticipantMapping.find({
+        tableReqId: tableReqId,
         isDeleted: false,
-      });
-      if (!tableReqParticipantMapping)
-        return res.status(404).send({ status: false, message: "tableReqParticipantMapping not found" });
-      return res
-        .status(200)
-        .send({ status: true, message: "success", data: tableReqParticipantMapping });
+      })
+      .populate({
+        path: 'tableReqId',
+        populate: [
+          { path: 'eventId' },
+          { path: 'clubId' },
+          { path: 'organizerUserId' }
+        ]
+      })
+      .populate('participantId');  // Initially populate participantId
+  
+      // Conditional population for userId if it exists
+      for (let mapping of tableReqParticipantMappings) {
+        if (mapping.participantId && mapping.participantId.userId) {
+          await mapping.populate({ path: 'participantId.userId' }).execPopulate();
+        }
+      }
+  
+      if (tableReqParticipantMappings.length === 0) {
+        return res.status(404).send({ status: false, message: "TableReqParticipantMapping not found" });
+      }
+  
+      return res.status(200).send({ status: true, message: "success", data: tableReqParticipantMappings });
     } catch (error) {
       return res.status(500).send({ status: false, message: error.message });
     }
   });
+  
+  
+  
 
 module.exports = router;

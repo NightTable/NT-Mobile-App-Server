@@ -169,7 +169,7 @@ router.get("/getListOfInvites/:phoneNumber", async (req, res) => {
       invitee: phoneNumber,
       isDeleted: false 
     })
-      .populate('tableRequestId')  // note the quotes here
+      .populate('tableRequestId organizerId')  // note the quotes here
       .lean();
 
     if (!requestsList.length) {
