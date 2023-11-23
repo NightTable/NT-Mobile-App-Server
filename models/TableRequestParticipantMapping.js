@@ -10,7 +10,7 @@ const tableRequestParticipantMappingSchema = new Schema({
   },
   participantId: {
     type: Schema.Types.ObjectId,
-    ref: "User",
+    ref: "Participant",
     required: true,
   },
   minimumPrice: {
