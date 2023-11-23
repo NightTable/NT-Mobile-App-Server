@@ -107,54 +107,6 @@ router.post("/createTableReqParticipantMapping", async (req, res) => {
     }
   });
 
-
-  /* router.get("/tableRequest/:tableReqId", async (req, res) => {
-    try {
-      let tableReqId = req.params.tableReqId;
-  
-      // Find the tableReqParticipantMapping documents
-      let tableReqParticipantMappings = await TableReqParticipantMapping.find({
-        tableReqId: tableReqId,
-        isDeleted: false,
-      })
-      .populate({
-        path: 'tableReqId',
-        populate: [
-          { path: 'eventId' },
-          { path: 'clubId' },
-          { path: 'organizerUserId' }
-        ]
-      })
-      //.populate('participantId');  // Initially populate participantId
-      console.log(tableReqParticipantMappings, "tableReqParticipantMappings\n");
-
-      for (let i = 0; i < tableReqParticipantMappings.length; i++) {
-        let variable = await tableReqParticipantMappings[i].populate('participantId');
-        console.log(variable, "variable\n");
-      }
-
-       // Conditional population for userId if it exists
-      for (let mapping of tableReqParticipantMappings) {
-        if (mapping.participantId && mapping.participantId.userId) {
-          await mapping.populate({ path: 'participantId.userId' }).execPopulate();
-        } 
-      }
-  
-      if (tableReqParticipantMappings.length === 0) {
-        return res.status(404).send({ status: false, message: "TableReqParticipantMapping not found" });
-      }
-  
-      return res.status(200).send({ status: true, message: "success", data: tableReqParticipantMappings });
-    } catch (error) {
-      return res.status(500).send({ status: false, message: error.message });
-    }
-  }); 
-  */
-  
-  
-  
-  
-
   router.get("/tableRequest/:tableReqId", async (req, res) => {
     try {
       let tableReqId = req.params.tableReqId;
