@@ -3,7 +3,7 @@ const Participant = require("../models/Participant");
 const router = express.Router();
 const ObjectId = require("mongodb").ObjectId;
 const TableReqParticipantMapping = require("../models/TableRequestParticipantMapping");
-
+const mongoose = require('mongoose'); 
 
 
 router.post("/createTableReqParticipantMapping", async (req, res) => {
@@ -110,7 +110,15 @@ router.post("/createTableReqParticipantMapping", async (req, res) => {
   router.get("/tableRequest/:tableReqId", async (req, res) => {
     try {
       let tableReqId = req.params.tableReqId;
-  
+
+      // Validate and convert tableReqId to ObjectId if necessary
+      if (!mongoose.Types.ObjectId.isValid(tableReqId)) {
+        return res.status(400).send({ status: false, message: "Invalid tableReqId" });
+      }
+      console.log(mongoose.Types.ObjectId.isValid(tableReqId));
+      tableReqId = mongoose.Types.ObjectId(tableReqId);
+      console.log(tableReqId);
+
       // Find the tableReqParticipantMapping documents
       let tableReqParticipantMappings = await TableReqParticipantMapping.find({
         tableReqId: tableReqId,
@@ -132,13 +140,14 @@ router.post("/createTableReqParticipantMapping", async (req, res) => {
           await mapping.populate({ path: 'participantId.userId' });
         }
       }
+      console.log(tableReqParticipantMappings);
   
       if (tableReqParticipantMappings.length === 0) {
         return res.status(404).send({ status: false, message: "TableReqParticipantMapping not found" });
       }
-  
       return res.status(200).send({ status: true, message: "success", data: tableReqParticipantMappings });
     } catch (error) {
+      console.log(error);
       return res.status(500).send({ status: false, message: error.message });
     }
   });

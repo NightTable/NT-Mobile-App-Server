@@ -314,7 +314,7 @@ router.post("/user", async (req, res) => {
 
 // });
 
-router.get("/:userid", async (req, res) => {
+router.get("/user/:userid", async (req, res) => {
   let userIdParam = req.params.userid;
   try {
     let retrievedUserObject = await User.findById(userIdParam);
