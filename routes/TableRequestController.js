@@ -43,7 +43,7 @@ router.get("/organizerUserId/:organizerUserId", async (req, res) => {
         { path: "eventId" }  // Populating eventId in each tableConfigId object
       ]
     })
-    .populate("organizerUserId promoterId"); // Continue to populate other fields
+    .populate("organizerUserId promoterId clubId"); // Continue to populate other fields
 
     if (tableReqs.length === 0) {
       return res.status(404).send({ status: false, message: "Table request by organizer not found" });
