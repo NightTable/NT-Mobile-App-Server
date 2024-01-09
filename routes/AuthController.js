@@ -1,36 +1,36 @@
-const express = require("express");
+const express = require('express');
 // const passport = require('passport')
 const router = express.Router();
-const jwt = require("jsonwebtoken");
+const jwt = require('jsonwebtoken');
 // const Bcrypt = require("bcrypt");
-const User = require("../models/User");
+const User = require('../models/User');
 // const RefreshToken = require("../models/RefreshToken");
 // const nodemailer = require("nodemailer");
 // const sendgridTransport = require("nodemailer-sendgrid-transport");
 // const LocalStrategy = require("passport-local").Strategy;
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
-const client = require("twilio")(accountSid, authToken);
-const otpModel = require("../models/Otp");
-let representativeModel = require("../models/Representative");
+const client = require('twilio')(accountSid, authToken);
+const otpModel = require('../models/Otp');
+let representativeModel = require('../models/Representative');
 
 // const flash = require("express-flash");
 // const session = require("express-session");
 // const methodOverride = require("method-override");
-const { ObjectId } = require("mongodb");
-const { Country, State, City } = require("country-state-city");
-let axios = require("axios");
-const AWS = require("aws-sdk");
+const { ObjectId } = require('mongodb');
+const { Country, State, City } = require('country-state-city');
+let axios = require('axios');
+const AWS = require('aws-sdk');
 AWS.config.update({
-  accessKeyId: "AKIA3VH5X5YSX3KUF4DS ",
-  secretAccessKey: "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",
-  region: "us-east-2",
+  accessKeyId: 'AKIA3VH5X5YSX3KUF4DS ',
+  secretAccessKey: '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',
+  region: 'us-east-2',
 });
-const sns = new AWS.SNS({ region: "us-east-2" });
+const sns = new AWS.SNS({ region: 'us-east-2' });
 
-require("dotenv").config();
+require('dotenv').config();
 
-router.get("/getCountryCodes", async (req, res) => {
+router.get('/getCountryCodes', async (req, res) => {
   try {
     let countries = Country.getAllCountries().map((ele) => {
       return {
@@ -45,58 +45,60 @@ router.get("/getCountryCodes", async (req, res) => {
   }
 });
 
-router.post("/getStatesOfCountry", async (req, res) => {
+router.post('/getStatesOfCountry', async (req, res) => {
   try {
     const { countryCode } = req.body;
 
     let States = State.getStatesOfCountry(countryCode);
 
     if (States && States.length > 0) {
-      return res.json({ status: 200, msg: "success", data: States });
+      return res.json({ status: 200, msg: 'success', data: States });
     } else {
-      return res.json({ status: 400, msg: "no data found" });
+      return res.json({ status: 400, msg: 'no data found' });
     }
   } catch (error) {
-    return res.json({ status: 500, msg: "internal server error" });
+    return res.json({ status: 500, msg: 'internal server error' });
   }
 });
 
-router.post("/citiesOfStates", async (req, res) => {
+router.post('/citiesOfStates', async (req, res) => {
   try {
     const { countryCode, stateCode } = req.body;
     let Cities = City.getCitiesOfState(countryCode, stateCode);
     if (Cities && Cities.length > 0) {
-      return res.json({ status: 200, msg: "success", data: Cities });
+      return res.json({ status: 200, msg: 'success', data: Cities });
     } else {
-      return res.json({ status: 400, msg: "failed" });
+      return res.json({ status: 400, msg: 'failed' });
     }
   } catch (error) {
-    return res.json({ status: 500, msg: "internal server error" });
+    return res.json({ status: 500, msg: 'internal server error' });
   }
 });
 
 const checkToken = async (req, res) => {
-  let token1 = req.header("Authorization");
+  let token1 = req.header('Authorization');
   if (!token1)
     return res
       .status(400)
-      .send({ status: false, message: "token must be present" });
-  token1 = token1.split(" ");
+      .send({ status: false, message: 'token must be present' });
+  token1 = token1.split(' ');
   const token = token1[1];
-  let decodedToken = jwt.verify(token, "nightclubapp");
+  let decodedToken = jwt.verify(token, 'nightclubapp');
   if (!decodedToken) {
-    return res.status(403).send({ status: false, message: "Bad token" });
+    return res.status(403).send({ status: false, message: 'Bad token' });
   }
   req.loggedUser = decodedToken.userId;
 };
 
 // router.get('/checkAuthenticated', checkToken);
 
-router.post("/generateOTP", async (req, res) => {
+router.post('/generateOTP', async (req, res) => {
   try {
     let { phoneNumberParam } = req.body;
     if (!phoneNumberParam) {
-      return res.status(400).send({ status: false, message: "bad request" });
+      return res
+        .status(200)
+        .send({ status: false, message: 'Please send otp' });
     }
     let numberValidation = await axios.get(
       `https://phonevalidation.abstractapi.com/v1/?api_key=96832543ded64bbd92d9bb974e2437d8&domain=https://phonevalidation.abstractapi.com/v1/api_key=96832543ded64bbd92d9bb974e2437d8&phone=${phoneNumberParam}`
@@ -105,7 +107,7 @@ router.post("/generateOTP", async (req, res) => {
     if (!numberValidation.data.valid) {
       return res
         .status(200)
-        .send({ status: false, message: "Invalid Phone number" });
+        .send({ status: false, message: 'Invalid Phone number' });
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000);
@@ -118,7 +120,7 @@ router.post("/generateOTP", async (req, res) => {
       phoneNumber: phoneNumberParam,
       expiryAt: expiryAt,
     };
-    console.log("otpInstance", otpInstance);
+    console.log('otpInstance', otpInstance);
     //saving the OTP in DB
     let otpInDbInstance = await otpModel.findOneAndUpdate(
       { phoneNumber: phoneNumberParam },
@@ -141,36 +143,58 @@ router.post("/generateOTP", async (req, res) => {
     //   }
     // });
 
+    // console.log('====================================');
+    // console.log('GENERATED OTP IS ', otp);
+    // console.log('====================================');
+    const accountSid = 'AC9436c08eec2f831ab31ce22bd831d03c';
+    const authToken = 'a4d8cdd8e08b3971d317e85da79d7f94';
+    const client = require('twilio')(accountSid, authToken);
+
+    client.messages
+      .create({
+        body: `OTP is ${otp}`,
+        messagingServiceSid: 'MGc5765f4a412dff397d740dbf25710c27',
+        to: phoneNumberParam,
+      })
+      .then((message) => {
+        // console.log(message.sid);
+        return res.status(200).send({
+          status: true,
+          message: `otp is ${otp}`,
+          data: otpInDbInstance,
+        });
+      });
+      // .done();
     // triggering a SMS to client mobile using twillio
     // client.messages
     //   .create({
     //     body: `OTP is ${otp}`,
-    //     messagingServiceSid: "MGc5765f4a412dff397d740dbf25710c27",
-    //     to: "+16175300464",
+    //     messagingServiceSid: 'MGc5765f4a412dff397d740dbf25710c27',
+    //     to: '+918770203998',
     //   })
-    //   .then((message) => console.log(message.sid))
-    //   .catch((err) => console.log(err));
+    //   .then((message) => console.log('twillio', message.sid))
+    //   .catch((err) => console.error('Twilio Error:', err));
 
-    return res
-      .status(200)
-      .send({ status: true, message: `otp is ${otp}`, data: otpInDbInstance });
+    // return res
+    //   .status(200)
+    //   .send({ status: true, message: `otp is ${otp}`, data: otpInDbInstance });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
 });
 
-router.post("/verifyOtp", async (req, res) => { 
+router.post('/verifyOtp', async (req, res) => {
   try {
     let { reqPhoneNumber, reqOtp } = req.body;
     if (!reqPhoneNumber) {
       return res
         .status(400)
-        .send({ status: false, message: "Phone number is required" });
+        .send({ status: false, message: 'Phone number is required' });
     }
     if (!reqOtp) {
       return res
         .status(400)
-        .send({ status: false, message: "OTP is required" });
+        .send({ status: false, message: 'OTP is required' });
     }
 
     //getting OTP data from DB to match with the OTP in request
@@ -178,13 +202,13 @@ router.post("/verifyOtp", async (req, res) => {
       .findOne({ phoneNumber: reqPhoneNumber })
       .select({ otp: 1, phoneNumber: 1, _id: 0, expiryAt: 1 });
     if (!otpFromDb)
-      return res.status(400).send({ status: false, message: "OTP not found" });
+      return res.status(400).send({ status: false, message: 'OTP not found' });
     //need to add if null returned
     let timeTOExpiry = Number(Date.now()) - Number(otpFromDb.expiryAt);
     // console.log(timeTOExpiry , typeof timeTOExpiry);
 
     if (timeTOExpiry >= 0) {
-      return res.status(400).send({ status: false, message: "Otp expired" });
+      return res.status(400).send({ status: false, message: 'Otp expired' });
     }
     if (otpFromDb.otp === reqOtp) {
       //user is verified and now proceed to check if the user is already existing
@@ -196,20 +220,20 @@ router.post("/verifyOtp", async (req, res) => {
           phoneNumber: reqPhoneNumber,
           isDeleted: false,
         });
-        secretString = "nightclubappforrepresentative";
+        secretString = 'nightclubappforrepresentative';
       } else {
         user = await User.findOneAndUpdate(
           { phoneNumber: reqPhoneNumber, isDeleted: false },
           { phoneNumber: reqPhoneNumber },
           { upsert: true, new: true }
         );
-        secretString = "nightclubapp";
+        secretString = 'nightclubapp';
       }
 
       if (!user) {
         return res.status(400).send({
           status: false,
-          message: "User or representative not found.",
+          message: 'User or representative not found.',
         });
       } else {
         // allow user login and generate a token
@@ -219,17 +243,15 @@ router.post("/verifyOtp", async (req, res) => {
         return res.status(200).send({
           status: true,
           token: token,
-          message: "user logged in and token generated!",
+          message: 'user logged in and token generated!',
           data: user,
         });
       }
     }
-    return res
-      .status(403)
-      .send({
-        status: false,
-        message: "Verification failed! Please try again.",
-      });
+    return res.status(403).send({
+      status: false,
+      message: 'Verification failed! Please try again.',
+    });
   } catch (error) {
     return res.status(500).send({ status: false, message: error.message });
   }
