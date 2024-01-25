@@ -5,6 +5,7 @@ const menu = require("../models/Menu");
 router.post("/createMenu", async (req, res) => {
   try {
     let menuData = req.body;
+    console.log(menuData, "menu data")
     let menuInstance = await menu.create(menuData);
     return res.status(201).send({
       status: true,
