@@ -1,18 +1,21 @@
 const express = require("express");
 const router = express.Router();
 const ObjectId = require("mongodb").ObjectId;
-const participant = require("../models/Participant");
+const Participant = require("../models/Participant");
 
 router.post("/participant", async (req, res) => {
   try {
-    let partipantBody = req.body;
-    let participant = await participant.create(partipantBody);
+    let participantBody = req.body;
+    console.log(participantBody, "participantBody")
+    let participantObj = await Participant.create(participantBody);
+    console.log(participantObj, "participantObj")
     return res.status(201).send({
       status: true,
       message: "participant created successfully",
-      data: participant,
+      data: participantObj,
     });
   } catch (error) {
+    console.log(error)
     return res.status(500).send({ status: false, message: error.message });
   }
 });
@@ -21,7 +24,7 @@ router.put("/:participantId", async (req, res) => {
   try {
     let participantUpdateBody = req.body;
     let { participantId } = req.params;
-    let participantUpdated = await participant.findOneAndUpdate(
+    let participantUpdated = await Participant.findOneAndUpdate(
       { _id: participantId, isDeleted: false },
       participantUpdateBody,
       { new: true }
@@ -43,7 +46,7 @@ router.put("/:participantId", async (req, res) => {
 router.delete("/:participantId", async (req, res) => {
   try {
     let { participantId } = req.params;
-    let particpantDeleted = await participant.findOneAndUpdate(
+    let particpantDeleted = await Participant.findOneAndUpdate(
       { _id: participantId, isDeleted: false },
       { isDeleted: true },
       { new: true }
@@ -64,7 +67,7 @@ router.delete("/:participantId", async (req, res) => {
 router.get("/:participantId", async (req, res) => {
   try {
     let { participantId } = req.params;
-    let participant = await participant.findOne({
+    let participant = await Participant.findOne({
       _id: participantId,
       isDeleted: false,
     });

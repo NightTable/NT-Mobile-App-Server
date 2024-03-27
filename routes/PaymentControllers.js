@@ -182,11 +182,28 @@ router.post("/capture-payment-intent", async (req, res) => {
   }
 });*/
 
+//refund a participant while removing them
+/*router.post("/create-refund-full", async (req, res) => {
+  try {
+    const paymentIntentId = req.body.paymentIntentId;
+    let refund;
+    try {
+      const refund = await stripe.refunds.create({
+        'payment-intent': paymentIntentId,
+    }
+    catch (error){
+      console.log(error);
+      return res.status(500).send({error: "could not initiate refund"});
+    }
+
+
+
+});*/
+
 //refund a charge, used for pnsl
 router.post("/create-refund", async (req, res) => {
   try {
     const chargeId = req.body.chargeId;
-
     const amountToRefund = req.body.amountToRefund;
 
     const charge = await stripe.charges.retrieve(

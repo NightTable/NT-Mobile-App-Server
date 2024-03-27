@@ -9,7 +9,7 @@ const mongoose = require('mongoose');
 router.post("/createTableReqParticipantMapping", async (req, res) => {
     try {
       let phoneNumber = req.body.phoneNumber;
-      let isPaymentInfoRegistered = false;
+      let isPaymentInfoRegistered = req.body.isPaymentInfoRegistered;
       let userId = req?.body?.userId;
 
       const participantData = {
@@ -17,7 +17,7 @@ router.post("/createTableReqParticipantMapping", async (req, res) => {
         isPaymentInfoRegistered: isPaymentInfoRegistered,
         ...(userId ? { userId: userId } : {}) // Include userId only if it's not null/undefined
       };
-      
+      console.log(participantData, "participantData");
 
       const participant = await Participant.create(participantData);
       console.log(participant, "participant\n");
@@ -57,6 +57,7 @@ router.post("/createTableReqParticipantMapping", async (req, res) => {
         data: trpm,
       });
     } catch (error) {
+      console.log(error, "error");
       return res.status(500).send({ status: false, message: error.message });
     }
   });
@@ -85,27 +86,42 @@ router.post("/createTableReqParticipantMapping", async (req, res) => {
     }
   });
 
-
-  router.delete("/:tableReqParticipantMapping", async (req, res) => {
+  router.delete("/:tableReqParticipantMappingId", async (req, res) => {
     try {
-      let { tableReqParticipantMappingId } = req.params;
-      let tableReqParticipantMappingDeleted = await tableReqParticipantMapping.findOneAndUpdate(
-        { _id: tableReqParticipantMappingId, isDeleted: false },
+      const { tableReqParticipantMappingId } = req.params;
+      
+      // First, find the TableReqParticipantMapping without marking it as deleted
+      const mapping = await TableReqParticipantMapping.findOne({ _id: tableReqParticipantMappingId, isDeleted: false });
+      
+      if (!mapping) {
+        return res.status(404).send({ status: false, message: "TableReqParticipantMapping request not found" });
+      }
+  
+      // Assuming the mapping contains a participantId field that you want to mark as deleted
+      const participantId = mapping.participantId;
+  
+      // Now, mark the associated Participant as deleted instead of deleting
+      await Participant.findOneAndUpdate(
+        { _id: participantId, isDeleted: false },
         { isDeleted: true },
         { new: true }
       );
-      if (!tableReqParticipantMappingDeleted)
-        return res
-          .status(404)
-          .send({ status: false, message: "tableReqParticipantMapping request not found" });
-      return res.status(201).send({
+  
+      // Then, mark the TableReqParticipantMapping as deleted
+      const tableReqParticipantMappingDeleted = await TableReqParticipantMapping.findOneAndUpdate(
+        { _id: tableReqParticipantMappingId },
+        { isDeleted: true },
+        { new: true }
+      );
+  
+      return res.status(200).send({
         status: true,
-        message: "tableReqParticipantMappingDeleted deleted successfully",
+        message: "TableReqParticipantMapping and associated Participant marked as deleted successfully",
       });
     } catch (error) {
       return res.status(500).send({ status: false, message: error.message });
     }
-  });
+  });  
 
   router.get("/tableRequest/:tableReqId", async (req, res) => {
     try {

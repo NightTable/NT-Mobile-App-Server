@@ -328,6 +328,20 @@ router.get("/user/:userid", async (req, res) => {
   }
 });
 
+router.get("/user/:phonenumber", async (req, res) => {
+  let phoneNumberParam = req.params.phonenumber;
+  try {
+    let retrievedUserObject = await User.findOne({ phoneNumber: phoneNumberParam });
+    if (!retrievedUserObject) {
+      return res.status(404).send({ status: false, message: "User not found" });
+    }
+    return res.status(200).send({ status: true, data: retrievedUserObject });
+  } catch (err) {
+    res.status(500).send({ status: false, message: err.message });
+  }
+});
+
+
 router.get("/:id", async (req, res) => {
   try {
     let id = req.params.id;
